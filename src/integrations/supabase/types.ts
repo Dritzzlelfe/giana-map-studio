@@ -24,6 +24,8 @@ export type Database = {
           id: string
           map_id: string
           parent_id: string | null
+          pos_x: number | null
+          pos_y: number | null
           priority: string | null
           sort_order: number
           status: string | null
@@ -39,6 +41,8 @@ export type Database = {
           id?: string
           map_id: string
           parent_id?: string | null
+          pos_x?: number | null
+          pos_y?: number | null
           priority?: string | null
           sort_order?: number
           status?: string | null
@@ -54,6 +58,8 @@ export type Database = {
           id?: string
           map_id?: string
           parent_id?: string | null
+          pos_x?: number | null
+          pos_y?: number | null
           priority?: string | null
           sort_order?: number
           status?: string | null

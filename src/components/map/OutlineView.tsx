@@ -36,6 +36,7 @@ function OutlineRow({
   depth,
   data,
   selectedId,
+  editingId,
   searchMatches,
   searchActive,
   onSelect,
@@ -44,13 +45,56 @@ function OutlineRow({
   onEdit,
   onDelete,
   onToggleCollapse,
+  onCommitTitle,
+  onEditingChange,
 }: Props & { node: TreeNode; depth: number }) {
   const [hover, setHover] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(node.title);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const autoEditedRef = useRef(false);
   const collapsed = node.collapsed;
   const hasChildren = node.children.length > 0;
   const isRoot = depth === 0;
   const dim = searchActive && !searchMatches.has(node.id);
   const highlight = searchActive && searchMatches.has(node.id);
+
+  useEffect(() => {
+    if (editingId === node.id && !autoEditedRef.current) {
+      autoEditedRef.current = true;
+      setDraft(node.title);
+      setEditing(true);
+    }
+    if (editingId !== node.id) autoEditedRef.current = false;
+  }, [editingId, node.id, node.title]);
+
+  useEffect(() => {
+    if (!editing) setDraft(node.title);
+  }, [node.title, editing]);
+
+  useEffect(() => {
+    onEditingChange(node.id, editing);
+    if (editing) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+  }, [editing, node.id, onEditingChange]);
+
+  const startEdit = () => {
+    setDraft(node.title);
+    setEditing(true);
+  };
+  const commit = () => {
+    const next = draft.trim();
+    if (next && next !== node.title) onCommitTitle(node.id, next);
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(node.title);
+    setEditing(false);
+  };
 
   return (
     <div>

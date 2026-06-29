@@ -89,6 +89,7 @@ function OutlineRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(node.title);
   const autoEditedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const collapsed = !expandedIds.has(node.id);
   const hasChildren = node.children.length > 0;
   const isRoot = depth === 0;

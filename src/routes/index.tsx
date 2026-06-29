@@ -49,6 +49,7 @@ function Index() {
 
   const [view, setView] = useState<ViewMode>("map");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -83,12 +84,12 @@ function Index() {
   const handleAddChild = async (parentId: string) => {
     const n = await addChild.mutateAsync({ parentId, title: "New node" });
     setSelectedId(n.id);
-    setDrawerOpen(true);
+    setEditingId(n.id);
   };
   const handleAddSibling = async (siblingId: string) => {
     const n = await addSibling.mutateAsync({ siblingId, title: "New node" });
     setSelectedId(n.id);
-    setDrawerOpen(true);
+    setEditingId(n.id);
   };
   const handleToggleCollapse = (id: string) => {
     if (!data) return;
@@ -123,6 +124,14 @@ function Index() {
   const handleAddTopLevel = () => {
     if (!data?.rootId) return;
     handleAddChild(data.rootId);
+  };
+
+  const handleCommitTitle = (id: string, title: string) => {
+    updateNode.mutate({ id, patch: { title } });
+    setEditingId((cur) => (cur === id ? null : cur));
+  };
+  const handleEditingChange = (id: string, editing: boolean) => {
+    if (!editing) setEditingId((cur) => (cur === id ? null : cur));
   };
 
   return (
@@ -207,6 +216,7 @@ function Index() {
           <MindMapView
             data={data}
             selectedId={selectedId}
+            editingId={editingId}
             searchMatches={searchMatches}
             searchActive={search.trim().length > 0}
             onSelect={handleSelect}
@@ -214,12 +224,15 @@ function Index() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleCollapse={handleToggleCollapse}
+            onCommitTitle={handleCommitTitle}
+            onEditingChange={handleEditingChange}
           />
         )}
         {data?.tree && view === "outline" && (
           <OutlineView
             data={data}
             selectedId={selectedId}
+            editingId={editingId}
             searchMatches={searchMatches}
             searchActive={search.trim().length > 0}
             onSelect={handleSelect}
@@ -228,6 +241,8 @@ function Index() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleCollapse={handleToggleCollapse}
+            onCommitTitle={handleCommitTitle}
+            onEditingChange={handleEditingChange}
           />
         )}
       </main>

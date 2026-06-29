@@ -20,6 +20,7 @@ const NODE_H = 56;
 type Props = {
   data: LoadedMap;
   selectedId: string | null;
+  editingId: string | null;
   searchMatches: Set<string>;
   searchActive: boolean;
   onSelect: (id: string) => void;
@@ -27,6 +28,8 @@ type Props = {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onToggleCollapse: (id: string) => void;
+  onCommitTitle: (id: string, title: string) => void;
+  onEditingChange: (id: string, editing: boolean) => void;
 };
 
 const nodeTypes = { mind: MindMapNode };
@@ -64,7 +67,7 @@ function collectVisible(data: LoadedMap): MapNode[] {
 }
 
 function InnerFlow(props: Props) {
-  const { data, selectedId, searchMatches, searchActive } = props;
+  const { data, selectedId, editingId, searchMatches, searchActive } = props;
   const rf = useReactFlow();
   const didFit = useRef(false);
 
@@ -87,11 +90,14 @@ function InnerFlow(props: Props) {
         collapsed: n.collapsed,
         highlighted: searchActive && searchMatches.has(n.id),
         dimmed: searchActive && !searchMatches.has(n.id),
+        autoEdit: n.id === editingId,
         onSelect: props.onSelect,
         onAddChild: props.onAddChild,
         onEdit: props.onEdit,
         onDelete: props.onDelete,
         onToggleCollapse: props.onToggleCollapse,
+        onCommitTitle: props.onCommitTitle,
+        onEditingChange: props.onEditingChange,
       },
     }));
 
@@ -107,7 +113,8 @@ function InnerFlow(props: Props) {
       }
     }
     return { nodes: layout(flowNodes, flowEdges), edges: flowEdges };
-  }, [data, selectedId, searchMatches, searchActive, props.onSelect, props.onAddChild, props.onEdit, props.onDelete, props.onToggleCollapse]);
+  }, [data, selectedId, editingId, searchMatches, searchActive, props.onSelect, props.onAddChild, props.onEdit, props.onDelete, props.onToggleCollapse, props.onCommitTitle, props.onEditingChange]);
+
 
   useEffect(() => {
     if (didFit.current) return;

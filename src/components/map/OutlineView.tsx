@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { categoryColorVar } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import type { LoadedMap, TreeNode } from "@/lib/mapApi";
@@ -7,6 +7,7 @@ import type { LoadedMap, TreeNode } from "@/lib/mapApi";
 type Props = {
   data: LoadedMap;
   selectedId: string | null;
+  editingId: string | null;
   searchMatches: Set<string>;
   searchActive: boolean;
   onSelect: (id: string) => void;
@@ -15,6 +16,8 @@ type Props = {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onToggleCollapse: (id: string) => void;
+  onCommitTitle: (id: string, title: string) => void;
+  onEditingChange: (id: string, editing: boolean) => void;
 };
 
 export function OutlineView(props: Props) {
@@ -33,6 +36,7 @@ function OutlineRow({
   depth,
   data,
   selectedId,
+  editingId,
   searchMatches,
   searchActive,
   onSelect,
@@ -41,13 +45,56 @@ function OutlineRow({
   onEdit,
   onDelete,
   onToggleCollapse,
+  onCommitTitle,
+  onEditingChange,
 }: Props & { node: TreeNode; depth: number }) {
   const [hover, setHover] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(node.title);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const autoEditedRef = useRef(false);
   const collapsed = node.collapsed;
   const hasChildren = node.children.length > 0;
   const isRoot = depth === 0;
   const dim = searchActive && !searchMatches.has(node.id);
   const highlight = searchActive && searchMatches.has(node.id);
+
+  useEffect(() => {
+    if (editingId === node.id && !autoEditedRef.current) {
+      autoEditedRef.current = true;
+      setDraft(node.title);
+      setEditing(true);
+    }
+    if (editingId !== node.id) autoEditedRef.current = false;
+  }, [editingId, node.id, node.title]);
+
+  useEffect(() => {
+    if (!editing) setDraft(node.title);
+  }, [node.title, editing]);
+
+  useEffect(() => {
+    onEditingChange(node.id, editing);
+    if (editing) {
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+  }, [editing, node.id, onEditingChange]);
+
+  const startEdit = () => {
+    setDraft(node.title);
+    setEditing(true);
+  };
+  const commit = () => {
+    const next = draft.trim();
+    if (next && next !== node.title) onCommitTitle(node.id, next);
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(node.title);
+    setEditing(false);
+  };
 
   return (
     <div>
@@ -63,6 +110,17 @@ function OutlineRow({
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         onClick={() => onSelect(node.id)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          startEdit();
+        }}
+        onKeyDown={(e) => {
+          if (!editing && selectedId === node.id && (e.key === "Enter" || e.key === "F2")) {
+            e.preventDefault();
+            startEdit();
+          }
+        }}
+        tabIndex={selectedId === node.id ? 0 : -1}
       >
         <button
           type="button"
@@ -82,32 +140,58 @@ function OutlineRow({
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: categoryColorVar(node.category) }}
         />
-        <span className={cn("min-w-0 flex-1 truncate", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
-          {node.title}
-        </span>
-        {node.priority === "asap" && (
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commit();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                cancel();
+              }
+            }}
+            className={cn(
+              "min-w-0 flex-1 bg-transparent outline-none border-b border-dashed border-border",
+              isRoot ? "font-display text-base font-semibold" : "text-sm",
+            )}
+          />
+        ) : (
+          <span className={cn("min-w-0 flex-1 truncate cursor-text", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
+            {node.title}
+          </span>
+        )}
+        {node.priority === "asap" && !editing && (
           <span className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-destructive">
             ASAP
           </span>
         )}
-        <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
-          <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
-            <Plus className="h-3.5 w-3.5" />
-          </IconBtn>
-          {!isRoot && (
-            <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
-              <Plus className="h-3.5 w-3.5 rotate-45" />
+        {!editing && (
+          <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
+            <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
+              <Plus className="h-3.5 w-3.5" />
             </IconBtn>
-          )}
-          <IconBtn label="Edit" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
-            <Pencil className="h-3.5 w-3.5" />
-          </IconBtn>
-          {!isRoot && (
-            <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
-              <Trash2 className="h-3.5 w-3.5" />
+            {!isRoot && (
+              <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
+                <Plus className="h-3.5 w-3.5 rotate-45" />
+              </IconBtn>
+            )}
+            <IconBtn label="Edit details" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
+              <Pencil className="h-3.5 w-3.5" />
             </IconBtn>
-          )}
-        </div>
+            {!isRoot && (
+              <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </IconBtn>
+            )}
+          </div>
+        )}
       </div>
       {!collapsed && hasChildren && (
         <div>
@@ -118,6 +202,7 @@ function OutlineRow({
               depth={depth + 1}
               data={data}
               selectedId={selectedId}
+              editingId={editingId}
               searchMatches={searchMatches}
               searchActive={searchActive}
               onSelect={onSelect}
@@ -126,6 +211,8 @@ function OutlineRow({
               onEdit={onEdit}
               onDelete={onDelete}
               onToggleCollapse={onToggleCollapse}
+              onCommitTitle={onCommitTitle}
+              onEditingChange={onEditingChange}
             />
           ))}
         </div>

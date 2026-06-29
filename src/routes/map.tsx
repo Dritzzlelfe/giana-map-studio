@@ -55,6 +55,7 @@ function Index() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryId | null>(null);
 
   const searchMatches = useMemo(() => {
     const set = new Set<string>();

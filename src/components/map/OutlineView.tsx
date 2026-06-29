@@ -110,6 +110,17 @@ function OutlineRow({
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         onClick={() => onSelect(node.id)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          startEdit();
+        }}
+        onKeyDown={(e) => {
+          if (!editing && selectedId === node.id && (e.key === "Enter" || e.key === "F2")) {
+            e.preventDefault();
+            startEdit();
+          }
+        }}
+        tabIndex={selectedId === node.id ? 0 : -1}
       >
         <button
           type="button"
@@ -129,32 +140,58 @@ function OutlineRow({
           className="h-2 w-2 shrink-0 rounded-full"
           style={{ backgroundColor: categoryColorVar(node.category) }}
         />
-        <span className={cn("min-w-0 flex-1 truncate", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
-          {node.title}
-        </span>
-        {node.priority === "asap" && (
+        {editing ? (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commit();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                cancel();
+              }
+            }}
+            className={cn(
+              "min-w-0 flex-1 bg-transparent outline-none border-b border-dashed border-border",
+              isRoot ? "font-display text-base font-semibold" : "text-sm",
+            )}
+          />
+        ) : (
+          <span className={cn("min-w-0 flex-1 truncate cursor-text", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
+            {node.title}
+          </span>
+        )}
+        {node.priority === "asap" && !editing && (
           <span className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-destructive">
             ASAP
           </span>
         )}
-        <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
-          <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
-            <Plus className="h-3.5 w-3.5" />
-          </IconBtn>
-          {!isRoot && (
-            <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
-              <Plus className="h-3.5 w-3.5 rotate-45" />
+        {!editing && (
+          <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
+            <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
+              <Plus className="h-3.5 w-3.5" />
             </IconBtn>
-          )}
-          <IconBtn label="Edit" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
-            <Pencil className="h-3.5 w-3.5" />
-          </IconBtn>
-          {!isRoot && (
-            <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
-              <Trash2 className="h-3.5 w-3.5" />
+            {!isRoot && (
+              <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
+                <Plus className="h-3.5 w-3.5 rotate-45" />
+              </IconBtn>
+            )}
+            <IconBtn label="Edit details" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
+              <Pencil className="h-3.5 w-3.5" />
             </IconBtn>
-          )}
-        </div>
+            {!isRoot && (
+              <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </IconBtn>
+            )}
+          </div>
+        )}
       </div>
       {!collapsed && hasChildren && (
         <div>
@@ -165,6 +202,7 @@ function OutlineRow({
               depth={depth + 1}
               data={data}
               selectedId={selectedId}
+              editingId={editingId}
               searchMatches={searchMatches}
               searchActive={searchActive}
               onSelect={onSelect}
@@ -173,6 +211,8 @@ function OutlineRow({
               onEdit={onEdit}
               onDelete={onDelete}
               onToggleCollapse={onToggleCollapse}
+              onCommitTitle={onCommitTitle}
+              onEditingChange={onEditingChange}
             />
           ))}
         </div>

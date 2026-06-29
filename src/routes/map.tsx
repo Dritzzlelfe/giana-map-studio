@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Network, List, Search, Download, Plus } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -11,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AppShell } from "@/components/shell/AppShell";
 import { MindMapView } from "@/components/map/MindMapView";
 import { OutlineView } from "@/components/map/OutlineView";
 import { NodeDrawer } from "@/components/map/NodeDrawer";
@@ -26,6 +26,7 @@ import {
 import { descendantCount, type MapNode } from "@/lib/mapApi";
 import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
 import { cn } from "@/lib/utils";
+import type { CategoryId } from "@/lib/categories";
 
 export const Route = createFileRoute("/map")({
   head: () => ({

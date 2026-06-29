@@ -49,6 +49,7 @@ function Index() {
 
   const [view, setView] = useState<ViewMode>("map");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState("");

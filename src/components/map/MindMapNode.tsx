@@ -166,21 +166,22 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
         )}
       </div>
 
-      {/* Hover toolbar */}
+      {/* Hover toolbar — sits fully above the card so it never overlaps the title */}
       {!editing && (
         <div
           className={cn(
-            "absolute -top-3 right-2 hidden gap-1 rounded-full border border-border bg-card px-1.5 py-1 shadow-sm group-hover:flex",
+            "absolute right-2 bottom-full mb-1.5 hidden gap-1 rounded-full border border-border bg-card px-1.5 py-1 shadow-md z-10 group-hover:flex",
             selected && "flex",
           )}
           onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
           <button
             type="button"
             className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={() => data.onAddChild(data.id)}
             aria-label="Add child"
-            title="Add child"
+            title="Add child (N)"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>

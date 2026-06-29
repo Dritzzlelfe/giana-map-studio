@@ -216,6 +216,7 @@ function Index() {
           <MindMapView
             data={data}
             selectedId={selectedId}
+            editingId={editingId}
             searchMatches={searchMatches}
             searchActive={search.trim().length > 0}
             onSelect={handleSelect}
@@ -223,12 +224,15 @@ function Index() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleCollapse={handleToggleCollapse}
+            onCommitTitle={handleCommitTitle}
+            onEditingChange={handleEditingChange}
           />
         )}
         {data?.tree && view === "outline" && (
           <OutlineView
             data={data}
             selectedId={selectedId}
+            editingId={editingId}
             searchMatches={searchMatches}
             searchActive={search.trim().length > 0}
             onSelect={handleSelect}
@@ -237,6 +241,8 @@ function Index() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleCollapse={handleToggleCollapse}
+            onCommitTitle={handleCommitTitle}
+            onEditingChange={handleEditingChange}
           />
         )}
       </main>

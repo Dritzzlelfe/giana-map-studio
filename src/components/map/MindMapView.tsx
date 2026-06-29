@@ -20,6 +20,7 @@ const NODE_H = 56;
 type Props = {
   data: LoadedMap;
   selectedId: string | null;
+  editingId: string | null;
   searchMatches: Set<string>;
   searchActive: boolean;
   onSelect: (id: string) => void;
@@ -27,6 +28,8 @@ type Props = {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onToggleCollapse: (id: string) => void;
+  onCommitTitle: (id: string, title: string) => void;
+  onEditingChange: (id: string, editing: boolean) => void;
 };
 
 const nodeTypes = { mind: MindMapNode };

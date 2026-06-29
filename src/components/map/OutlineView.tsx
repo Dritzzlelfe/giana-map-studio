@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { categoryColorVar } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import type { LoadedMap, TreeNode } from "@/lib/mapApi";
@@ -22,10 +22,44 @@ type Props = {
 
 export function OutlineView(props: Props) {
   if (!props.data.tree) return null;
+
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    const all = new Set<string>();
+    const walk = (n: TreeNode) => {
+      all.add(n.id);
+      n.children.forEach(walk);
+    };
+    walk(props.data.tree!);
+    return all;
+  });
+
+  // Auto-expand ancestors when selectedId changes so the selected row is visible.
+  useEffect(() => {
+    if (!props.selectedId || !props.data) return;
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      let current = props.data.byId[props.selectedId];
+      while (current?.parent_id) {
+        next.add(current.parent_id);
+        current = props.data.byId[current.parent_id];
+      }
+      return next;
+    });
+  }, [props.selectedId]);
+
+  // Scroll selected row into view.
+  useEffect(() => {
+    if (!props.selectedId) return;
+    const el = document.getElementById("outline-" + props.selectedId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [props.selectedId]);
+
   return (
     <div className="h-full overflow-auto p-6">
       <div className="mx-auto max-w-3xl">
-        <OutlineRow node={props.data.tree} depth={0} {...props} />
+        <OutlineRow node={props.data.tree} depth={0} {...props} expandedIds={expandedIds} setExpandedIds={setExpandedIds} />
       </div>
     </div>
   );
@@ -47,13 +81,14 @@ function OutlineRow({
   onToggleCollapse,
   onCommitTitle,
   onEditingChange,
-}: Props & { node: TreeNode; depth: number }) {
+  expandedIds,
+  setExpandedIds,
+}: Props & { node: TreeNode; depth: number; expandedIds: Set<string>; setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>> }) {
   const [hover, setHover] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(node.title);
-  const inputRef = useRef<HTMLInputElement | null>(null);
   const autoEditedRef = useRef(false);
-  const collapsed = node.collapsed;
+  const collapsed = !expandedIds.has(node.id);
   const hasChildren = node.children.length > 0;
   const isRoot = depth === 0;
   const dim = searchActive && !searchMatches.has(node.id);
@@ -96,15 +131,29 @@ function OutlineRow({
     setEditing(false);
   };
 
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!hasChildren) return;
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      return next;
+    });
+    // Also propagate to the map's collapse state for consistency.
+    onToggleCollapse(node.id);
+  };
+
   return (
     <div>
       <div
+        id={"outline-" + node.id}
         className={cn(
           "group flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors",
           selectedId === node.id && "bg-secondary",
           highlight && "bg-amber-100/60",
           dim && "opacity-40",
-          !selectedId && "hover:bg-secondary/60",
+          !selectedId && "hover:bg-secondary/60"
         )}
         style={{ marginLeft: depth * 18 }}
         onMouseEnter={() => setHover(true)}
@@ -125,16 +174,15 @@ function OutlineRow({
         <button
           type="button"
           className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (hasChildren) onToggleCollapse(node.id);
-          }}
+          onClick={toggleExpand}
           disabled={!hasChildren}
           aria-label={collapsed ? "Expand" : "Collapse"}
         >
           {hasChildren ? (
             collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />
-          ) : <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />}
+          ) : (
+            <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+          )}
         </button>
         <span
           className="h-2 w-2 shrink-0 rounded-full"
@@ -159,7 +207,7 @@ function OutlineRow({
             }}
             className={cn(
               "min-w-0 flex-1 bg-transparent outline-none border-b border-dashed border-border",
-              isRoot ? "font-display text-base font-semibold" : "text-sm",
+              isRoot ? "font-display text-base font-semibold" : "text-sm"
             )}
           />
         ) : (
@@ -213,6 +261,8 @@ function OutlineRow({
               onToggleCollapse={onToggleCollapse}
               onCommitTitle={onCommitTitle}
               onEditingChange={onEditingChange}
+              expandedIds={expandedIds}
+              setExpandedIds={setExpandedIds}
             />
           ))}
         </div>
@@ -240,7 +290,7 @@ function IconBtn({
       onClick={onClick}
       className={cn(
         "rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground",
-        danger && "hover:bg-destructive/10 hover:text-destructive",
+        danger && "hover:bg-destructive/10 hover:text-destructive"
       )}
     >
       {children}

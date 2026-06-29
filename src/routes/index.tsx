@@ -221,55 +221,59 @@ function Index() {
         </div>
       </header>
 
-      <main className="relative min-h-0 flex-1">
+      <main className="relative flex flex-1 min-h-0 flex-col lg:flex-row">
         {isLoading && (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading map…
           </div>
         )}
         {error && (
-          <div className="flex h-full items-center justify-center text-destructive">
+          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-destructive">
             Failed to load map: {(error as Error).message}
           </div>
         )}
         {data && !data.tree && (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
+          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-muted-foreground">
             Map is empty.
           </div>
         )}
-        {data?.tree && view === "map" && (
-          <MindMapView
-            data={data}
-            selectedId={selectedId}
-            editingId={editingId}
-            searchMatches={searchMatches}
-            searchActive={search.trim().length > 0}
-            onSelect={handleSelect}
-            onAddChild={handleAddChild}
-            onAddChildAt={handleAddChildAt}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleCollapse={handleToggleCollapse}
-            onCommitTitle={handleCommitTitle}
-            onEditingChange={handleEditingChange}
-          />
-        )}
-        {data?.tree && view === "outline" && (
-          <OutlineView
-            data={data}
-            selectedId={selectedId}
-            editingId={editingId}
-            searchMatches={searchMatches}
-            searchActive={search.trim().length > 0}
-            onSelect={handleSelect}
-            onAddChild={handleAddChild}
-            onAddSibling={handleAddSibling}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleCollapse={handleToggleCollapse}
-            onCommitTitle={handleCommitTitle}
-            onEditingChange={handleEditingChange}
-          />
+        {data?.tree && (
+          <>
+            <div className={cn("flex-1 min-h-0", view === "outline" && "hidden lg:block")}>
+              <MindMapView
+                data={data}
+                selectedId={selectedId}
+                editingId={editingId}
+                searchMatches={searchMatches}
+                searchActive={search.trim().length > 0}
+                onSelect={handleSelect}
+                onAddChild={handleAddChild}
+                onAddChildAt={handleAddChildAt}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleCollapse={handleToggleCollapse}
+                onCommitTitle={handleCommitTitle}
+                onEditingChange={handleEditingChange}
+              />
+            </div>
+            <div className={cn("border-l bg-background overflow-auto", view === "map" && "hidden lg:block", "lg:w-[35%] lg:max-w-[420px] lg:min-w-[300px]")}>
+              <OutlineView
+                data={data}
+                selectedId={selectedId}
+                editingId={editingId}
+                searchMatches={searchMatches}
+                searchActive={search.trim().length > 0}
+                onSelect={handleSelect}
+                onAddChild={handleAddChild}
+                onAddSibling={handleAddSibling}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleCollapse={handleToggleCollapse}
+                onCommitTitle={handleCommitTitle}
+                onEditingChange={handleEditingChange}
+              />
+            </div>
+          </>
         )}
       </main>
 

@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MindMapView } from "@/components/map/MindMapView";
-import { OutlineView, type OutlineViewHandle } from "@/components/map/OutlineView";
+import { OutlineView } from "@/components/map/OutlineView";
 import { NodeDrawer } from "@/components/map/NodeDrawer";
 import { DeleteNodeDialog } from "@/components/map/DeleteNodeDialog";
 import { CategoryLegend } from "@/components/map/CategoryLegend";

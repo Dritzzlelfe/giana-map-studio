@@ -12,6 +12,8 @@ export type MapNode = {
   color: string | null;
   sort_order: number;
   collapsed: boolean;
+  pos_x: number | null;
+  pos_y: number | null;
   created_at: string;
   updated_at: string;
 };

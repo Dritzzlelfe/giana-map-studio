@@ -84,12 +84,12 @@ function Index() {
   const handleAddChild = async (parentId: string) => {
     const n = await addChild.mutateAsync({ parentId, title: "New node" });
     setSelectedId(n.id);
-    setDrawerOpen(true);
+    setEditingId(n.id);
   };
   const handleAddSibling = async (siblingId: string) => {
     const n = await addSibling.mutateAsync({ siblingId, title: "New node" });
     setSelectedId(n.id);
-    setDrawerOpen(true);
+    setEditingId(n.id);
   };
   const handleToggleCollapse = (id: string) => {
     if (!data) return;

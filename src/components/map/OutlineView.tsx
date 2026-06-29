@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { categoryColorVar } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import type { LoadedMap, TreeNode } from "@/lib/mapApi";
@@ -7,6 +7,7 @@ import type { LoadedMap, TreeNode } from "@/lib/mapApi";
 type Props = {
   data: LoadedMap;
   selectedId: string | null;
+  editingId: string | null;
   searchMatches: Set<string>;
   searchActive: boolean;
   onSelect: (id: string) => void;
@@ -15,6 +16,8 @@ type Props = {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onToggleCollapse: (id: string) => void;
+  onCommitTitle: (id: string, title: string) => void;
+  onEditingChange: (id: string, editing: boolean) => void;
 };
 
 export function OutlineView(props: Props) {

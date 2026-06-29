@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { categoryColorVar } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 import type { LoadedMap, TreeNode } from "@/lib/mapApi";

@@ -245,6 +245,7 @@ function Index() {
             searchActive={search.trim().length > 0}
             onSelect={handleSelect}
             onAddChild={handleAddChild}
+            onAddChildAt={handleAddChildAt}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onToggleCollapse={handleToggleCollapse}

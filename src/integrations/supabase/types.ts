@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      map_nodes: {
+        Row: {
+          category: string | null
+          collapsed: boolean
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          map_id: string
+          parent_id: string | null
+          priority: string | null
+          sort_order: number
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          collapsed?: boolean
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          map_id: string
+          parent_id?: string | null
+          priority?: string | null
+          sort_order?: number
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          collapsed?: boolean
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          map_id?: string
+          parent_id?: string | null
+          priority?: string | null
+          sort_order?: number
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "map_nodes_map_id_fkey"
+            columns: ["map_id"]
+            isOneToOne: false
+            referencedRelation: "maps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "map_nodes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "map_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maps: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Network, List, Search, Download, Plus } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MindMapView } from "@/components/map/MindMapView";
-import { OutlineView } from "@/components/map/OutlineView";
+import { OutlineView, type OutlineViewHandle } from "@/components/map/OutlineView";
 import { NodeDrawer } from "@/components/map/NodeDrawer";
 import { DeleteNodeDialog } from "@/components/map/DeleteNodeDialog";
 import { CategoryLegend } from "@/components/map/CategoryLegend";
@@ -25,6 +25,7 @@ import {
 } from "@/lib/useMapData";
 import { descendantCount, type MapNode } from "@/lib/mapApi";
 import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({

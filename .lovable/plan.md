@@ -1,47 +1,38 @@
-# V3 — Canvas libre
+## Plan — Interface split-screen Map + Outline
 
-Passage d'une disposition automatique (dagre) à un **canvas 100% libre** : tu places chaque carte où tu veux, tu les déplaces librement, et un double-clic dans le vide crée une nouvelle carte à l'endroit cliqué.
+### Objectif
+Passer de l'alternance Map / Outline (toggle) à un affichage **permanent côte à côte** avec synchronisation bidirectionnelle de la sélection.
 
-## Comportement
+### 1. Layout split-screen
+- Remplacer le `ToggleGroup` Map/Outline par une grille/flex split : **gauche la Mind Map (~65%)**, **droite l'Outline (~35%)**.
+- Séparateur visuel subtil (`border-r`) sans redimensionnement drag pour garder la simplicité.
+- Sur petit écran (< 1024 px) : retomber automatiquement sur le toggle actuel (responsive).
+- Garder le header inchangé (titre, recherche, export, bouton Add node).
 
-- **Double-clic sur le canvas** → crée une nouvelle carte à la position du curseur, enfant du nœud sélectionné (ou du root si rien n'est sélectionné), et entre directement en mode édition de titre.
-- **Drag d'une carte** → met à jour sa position et sauvegarde immédiatement.
-- **Le lien parent → enfant** reste affiché comme une arête React Flow (la hiérarchie n'est pas perdue, seule la disposition devient libre).
-- **Le double-clic sur un nœud** conserve son rôle actuel : édition inline du titre (n'entre pas en conflit avec le double-clic canvas).
-- **L'Outline view** reste hiérarchique et inchangée (la position x/y n'a de sens que dans la map).
+### 2. Synchronisation bidirectionnelle
+- **Map → Outline** : quand un nœud est sélectionné dans le canvas, l'Outline défile (`scrollIntoView`) jusqu'à ce nœud et déplie automatiquement ses ancêtres s'ils étaient repliés.
+- **Outline → Map** : quand un nœud est sélectionné dans la liste, la carte centre/zoom (`fitView`) sur ce nœud pour le rendre visible immédiatement.
+- Les deux vues partagent le même `selectedId` ; la surbrillance (ring, bg-secondary) est cohérente des deux côtés.
 
-## Migration des nœuds existants
+### 3. Déploiement/repliement automatique
+- Dans l'Outline, un nœud sélectionné dont les ancêtres sont `collapsed` verra ces ancêtres dépliés automatiquement pour le rendre visible.
+- Introduire un `expandedIds` local dans `OutlineView` piloté par la sélection et les clics manuels de Chevron (ne pas toucher `collapsed` en base pour ça ; c'est un état d'affichage local à l'Outline).
 
-Au premier chargement après la migration, les nœuds sans position se voient attribuer une position initiale via dagre **une seule fois**, puis ces positions sont persistées en base. Ensuite, tout est manuel.
+### 4. Conservation des fonctionnalités existantes
+- Inline edit, double-clic canvas, drag & drop des cartes, raccourci **N**, drawer métadonnées, export, recherche — tout reste identique.
+- Le drawer et le dialogue de suppression continuent de fonctionner depuis les deux vues.
 
-## Détails techniques
+### 5. Fichiers modifiés / créés
+- `src/routes/index.tsx` — remplacer le toggle par le split-screen, gérer le `expandedIds` Outline, coordonner `handleSelect`.
+- `src/components/map/OutlineView.tsx` — ajouter le contrôle local `expandedIds`, exposer une ref/scroll vers le nœud sélectionné.
+- `src/components/map/MindMapView.tsx` — exposer un moyen de déclencher `fitView({ nodes: [id] })` depuis le parent.
+- Pas de migration DB requise.
 
-### 1. Base de données
-Migration ajoutant deux colonnes à `map_nodes` :
-- `pos_x numeric` (nullable)
-- `pos_y numeric` (nullable)
+### Détails techniques
+- Pas de librairie externe supplémentaire (split pane drag) — flexbox + `hidden lg:block` suffit.
+- `useEffect` dans `OutlineView` : quand `selectedId` change, `document.getElementById('outline-' + selectedId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })`.
+- `useEffect` dans `MindMapView` : quand `selectedId` change depuis l'Outline, `rf.fitView({ nodes: [{ id: selectedId }], duration: 300 })`.
 
-`null` = pas encore positionné → sera calculé via dagre au premier render puis sauvegardé.
-
-### 2. Couche data (`mapApi.ts` / `useMapData.ts`)
-- Nouveau mutation `useUpdateNodePosition({ id, pos_x, pos_y })` avec debounce léger (~150 ms) pour éviter de spammer la DB pendant le drag.
-- `useAddChild` accepte un `pos_x` / `pos_y` optionnel pour les nœuds créés via double-clic.
-- Update optimiste sur le cache TanStack Query, rollback en cas d'erreur (pattern déjà en place).
-
-### 3. MindMapView
-- Supprimer le calcul dagre au render. Utiliser les `pos_x` / `pos_y` de la DB.
-- Fonction `seedMissingPositions(nodes)` : si certains nœuds n'ont pas de position, calculer un layout dagre une seule fois, puis envoyer un `UPDATE` batch pour persister. Ne se déclenche que quand `pos_x IS NULL`.
-- React Flow : `nodesDraggable = true`, écouter `onNodeDragStop` pour sauvegarder la position finale (un seul write par drag, propre).
-- Écouter `onPaneDoubleClick` pour créer un nouveau nœud : convertir les coordonnées écran → coordonnées flow via `reactFlowInstance.screenToFlowPosition`, appeler `addChild` avec `parentId = selectedId ?? rootId` et `pos_x` / `pos_y`.
-- Garder le bouton "Fit view" pour recentrer manuellement.
-
-### 4. UX
-- Curseur "crosshair" léger au survol du pane vide pour indiquer l'action double-clic (optionnel, fin).
-- Toast discret au premier seed de positions : "Layout initial appliqué — tu peux maintenant déplacer les cartes librement."
-- Raccourci `N` existant : continue de créer un enfant, mais positionné à droite du parent (offset fixe) plutôt qu'à un endroit aléatoire.
-
-## Hors scope
-
-- Création/édition manuelle d'arêtes (relier deux cartes existantes au drag). Le parent reste défini à la création et via l'Outline.
-- Auto-arrangement après modification — c'est précisément ce que tu veux désactiver.
-- Zoom/pan limits custom — React Flow par défaut suffit.
+### Hors scope de ce plan
+- Redimensionnement drag du séparateur (peut être ajouté plus tard).
+- Refonte visuelle globale (couleurs, typographie) — sauf si demandé ensuite.

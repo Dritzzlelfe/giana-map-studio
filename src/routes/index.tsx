@@ -86,6 +86,11 @@ function Index() {
     setSelectedId(n.id);
     setEditingId(n.id);
   };
+  const handleAddChildAt = async (parentId: string | null, pos: { x: number; y: number }) => {
+    const n = await addChild.mutateAsync({ parentId, title: "New node", pos_x: pos.x, pos_y: pos.y });
+    setSelectedId(n.id);
+    setEditingId(n.id);
+  };
   const handleAddSibling = async (siblingId: string) => {
     const n = await addSibling.mutateAsync({ siblingId, title: "New node" });
     setSelectedId(n.id);

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Network, List, Search, Download, Plus } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -11,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AppShell } from "@/components/shell/AppShell";
 import { MindMapView } from "@/components/map/MindMapView";
 import { OutlineView } from "@/components/map/OutlineView";
 import { NodeDrawer } from "@/components/map/NodeDrawer";
@@ -26,6 +26,7 @@ import {
 import { descendantCount, type MapNode } from "@/lib/mapApi";
 import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
 import { cn } from "@/lib/utils";
+import type { CategoryId } from "@/lib/categories";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -54,15 +55,30 @@ function Index() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryId | null>(null);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<CategoryId, number>> = {};
+    if (!data) return counts;
+    for (const n of data.nodes) {
+      const c = (n.category ?? "field") as CategoryId;
+      counts[c] = (counts[c] ?? 0) + 1;
+    }
+    return counts;
+  }, [data]);
 
   const searchMatches = useMemo(() => {
     const set = new Set<string>();
-    if (!data || !search.trim()) return set;
+    if (!data) return set;
     const q = search.trim().toLowerCase();
+    if (!q && !categoryFilter) return set;
     for (const n of data.nodes) {
-      if (n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q)) {
+      const textMatch = q
+        ? n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q)
+        : true;
+      const catMatch = categoryFilter ? (n.category ?? "field") === categoryFilter : true;
+      if (textMatch && catMatch) {
         set.add(n.id);
-        // bubble matches up so ancestors stay visible
         let p = n.parent_id;
         while (p) {
           set.add(p);
@@ -71,7 +87,9 @@ function Index() {
       }
     }
     return set;
-  }, [data, search]);
+  }, [data, search, categoryFilter]);
+
+  const filterActive = search.trim().length > 0 || !!categoryFilter;
 
   const selected: MapNode | null = selectedId && data ? data.byId[selectedId] ?? null : null;
   const deleteNodeRow: MapNode | null = deleteTarget && data ? data.byId[deleteTarget] ?? null : null;
@@ -159,69 +177,58 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, data, deleteTarget, drawerOpen]);
 
-  return (
-    <div className="flex h-screen flex-col bg-background">
-      <Toaster richColors position="top-right" />
-
-      <header className="shrink-0 border-b bg-card/60 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-3 px-5 py-3">
-          <div className="min-w-0">
-            <h1 className="font-display text-xl font-semibold tracking-tight">
-              Giana Allen Design <span className="text-muted-foreground">— Project Map</span>
-            </h1>
-            {data?.map.name && (
-              <p className="truncate text-xs text-muted-foreground">{data.map.name}</p>
-            )}
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search nodes…"
-              className="h-9 w-56 pl-8"
-            />
-          </div>
-
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={(v) => v && setView(v as ViewMode)}
-            className="rounded-md border bg-card lg:hidden"
-          >
-            <ToggleGroupItem value="map" className="h-9 px-3">
-              <Network className="mr-1.5 h-4 w-4" /> Map
-            </ToggleGroupItem>
-            <ToggleGroupItem value="outline" className="h-9 px-3">
-              <List className="mr-1.5 h-4 w-4" /> Outline
-            </ToggleGroupItem>
-          </ToggleGroup>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <Download className="mr-1.5 h-4 w-4" /> Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("md")}>Markdown outline</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("json")}>JSON</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button size="sm" className="h-9" onClick={handleAddTopLevel} disabled={!data?.rootId}>
-            <Plus className="mr-1.5 h-4 w-4" /> Add node
+  const right = (
+    <>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search nodes…"
+          className="h-9 w-56 pl-8"
+        />
+      </div>
+      <ToggleGroup
+        type="single"
+        value={view}
+        onValueChange={(v) => v && setView(v as ViewMode)}
+        className="rounded-md border bg-card lg:hidden"
+      >
+        <ToggleGroupItem value="map" className="h-9 px-3">
+          <Network className="mr-1.5 h-4 w-4" /> Map
+        </ToggleGroupItem>
+        <ToggleGroupItem value="outline" className="h-9 px-3">
+          <List className="mr-1.5 h-4 w-4" /> Outline
+        </ToggleGroupItem>
+      </ToggleGroup>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-9">
+            <Download className="mr-1.5 h-4 w-4" /> Export
           </Button>
-        </div>
-        <div className="border-t bg-background/50 px-5 py-2">
-          <CategoryLegend />
-        </div>
-      </header>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleExport("md")}>Markdown outline</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleExport("json")}>JSON</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button size="sm" className="h-9" onClick={handleAddTopLevel} disabled={!data?.rootId}>
+        <Plus className="mr-1.5 h-4 w-4" /> Add node
+      </Button>
+    </>
+  );
 
-      <main className="relative flex flex-1 min-h-0 flex-col lg:flex-row">
+  return (
+    <AppShell right={right}>
+      <div className="shrink-0 border-b bg-background/50 px-5 py-2">
+        <CategoryLegend
+          activeCategory={categoryFilter}
+          onSelect={setCategoryFilter}
+          counts={categoryCounts}
+        />
+      </div>
+
+      <div className="relative flex flex-1 min-h-0 flex-col lg:flex-row">
         {isLoading && (
           <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading map…
@@ -245,7 +252,7 @@ function Index() {
                 selectedId={selectedId}
                 editingId={editingId}
                 searchMatches={searchMatches}
-                searchActive={search.trim().length > 0}
+                searchActive={filterActive}
                 onSelect={handleSelect}
                 onAddChild={handleAddChild}
                 onAddChildAt={handleAddChildAt}
@@ -262,7 +269,7 @@ function Index() {
                 selectedId={selectedId}
                 editingId={editingId}
                 searchMatches={searchMatches}
-                searchActive={search.trim().length > 0}
+                searchActive={filterActive}
                 onSelect={handleSelect}
                 onAddChild={handleAddChild}
                 onAddSibling={handleAddSibling}
@@ -275,7 +282,8 @@ function Index() {
             </div>
           </>
         )}
-      </main>
+      </div>
+
 
       <NodeDrawer
         node={selected}
@@ -291,6 +299,6 @@ function Index() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
-    </div>
+    </AppShell>
   );
 }

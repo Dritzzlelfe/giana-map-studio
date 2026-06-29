@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScheduleIndexRouteImport } from './routes/schedule.index'
+import { Route as RoomIndexRouteImport } from './routes/room.index'
 import { Route as ScheduleCategoryKeyRouteImport } from './routes/schedule.$categoryKey'
 import { Route as RoomRoomIdRouteImport } from './routes/room.$roomId'
 
@@ -28,6 +30,16 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleIndexRoute = ScheduleIndexRouteImport.update({
+  id: '/schedule/',
+  path: '/schedule/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoomIndexRoute = RoomIndexRouteImport.update({
+  id: '/room/',
+  path: '/room/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScheduleCategoryKeyRoute = ScheduleCategoryKeyRouteImport.update({
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/map': typeof MapRoute
   '/room/$roomId': typeof RoomRoomIdRoute
   '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
+  '/room/': typeof RoomIndexRoute
+  '/schedule/': typeof ScheduleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/map': typeof MapRoute
   '/room/$roomId': typeof RoomRoomIdRoute
   '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
+  '/room': typeof RoomIndexRoute
+  '/schedule': typeof ScheduleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +78,8 @@ export interface FileRoutesById {
   '/map': typeof MapRoute
   '/room/$roomId': typeof RoomRoomIdRoute
   '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
+  '/room/': typeof RoomIndexRoute
+  '/schedule/': typeof ScheduleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +89,17 @@ export interface FileRouteTypes {
     | '/map'
     | '/room/$roomId'
     | '/schedule/$categoryKey'
+    | '/room/'
+    | '/schedule/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/map' | '/room/$roomId' | '/schedule/$categoryKey'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/map'
+    | '/room/$roomId'
+    | '/schedule/$categoryKey'
+    | '/room'
+    | '/schedule'
   id:
     | '__root__'
     | '/'
@@ -80,6 +107,8 @@ export interface FileRouteTypes {
     | '/map'
     | '/room/$roomId'
     | '/schedule/$categoryKey'
+    | '/room/'
+    | '/schedule/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,6 +117,8 @@ export interface RootRouteChildren {
   MapRoute: typeof MapRoute
   RoomRoomIdRoute: typeof RoomRoomIdRoute
   ScheduleCategoryKeyRoute: typeof ScheduleCategoryKeyRoute
+  RoomIndexRoute: typeof RoomIndexRoute
+  ScheduleIndexRoute: typeof ScheduleIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -113,6 +144,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/schedule/': {
+      id: '/schedule/'
+      path: '/schedule'
+      fullPath: '/schedule/'
+      preLoaderRoute: typeof ScheduleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/room/': {
+      id: '/room/'
+      path: '/room'
+      fullPath: '/room/'
+      preLoaderRoute: typeof RoomIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/schedule/$categoryKey': {
       id: '/schedule/$categoryKey'
       path: '/schedule/$categoryKey'
@@ -136,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   MapRoute: MapRoute,
   RoomRoomIdRoute: RoomRoomIdRoute,
   ScheduleCategoryKeyRoute: ScheduleCategoryKeyRoute,
+  RoomIndexRoute: RoomIndexRoute,
+  ScheduleIndexRoute: ScheduleIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

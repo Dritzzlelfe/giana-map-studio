@@ -299,6 +299,6 @@ function Index() {
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
       />
-    </div>
+    </AppShell>
   );
 }

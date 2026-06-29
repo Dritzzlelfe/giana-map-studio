@@ -1,0 +1,162 @@
+import { ChevronDown, ChevronRight, Plus, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { categoryColorVar } from "@/lib/categories";
+import { cn } from "@/lib/utils";
+import type { LoadedMap, TreeNode } from "@/lib/mapApi";
+
+type Props = {
+  data: LoadedMap;
+  selectedId: string | null;
+  searchMatches: Set<string>;
+  searchActive: boolean;
+  onSelect: (id: string) => void;
+  onAddChild: (id: string) => void;
+  onAddSibling: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onToggleCollapse: (id: string) => void;
+};
+
+export function OutlineView(props: Props) {
+  if (!props.data.tree) return null;
+  return (
+    <div className="h-full overflow-auto p-6">
+      <div className="mx-auto max-w-3xl">
+        <OutlineRow node={props.data.tree} depth={0} {...props} />
+      </div>
+    </div>
+  );
+}
+
+function OutlineRow({
+  node,
+  depth,
+  data,
+  selectedId,
+  searchMatches,
+  searchActive,
+  onSelect,
+  onAddChild,
+  onAddSibling,
+  onEdit,
+  onDelete,
+  onToggleCollapse,
+}: Props & { node: TreeNode; depth: number }) {
+  const [hover, setHover] = useState(false);
+  const collapsed = node.collapsed;
+  const hasChildren = node.children.length > 0;
+  const isRoot = depth === 0;
+  const dim = searchActive && !searchMatches.has(node.id);
+  const highlight = searchActive && searchMatches.has(node.id);
+
+  return (
+    <div>
+      <div
+        className={cn(
+          "group flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors",
+          selectedId === node.id && "bg-secondary",
+          highlight && "bg-amber-100/60",
+          dim && "opacity-40",
+          !selectedId && "hover:bg-secondary/60",
+        )}
+        style={{ marginLeft: depth * 18 }}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onClick={() => onSelect(node.id)}
+      >
+        <button
+          type="button"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) onToggleCollapse(node.id);
+          }}
+          disabled={!hasChildren}
+          aria-label={collapsed ? "Expand" : "Collapse"}
+        >
+          {hasChildren ? (
+            collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />
+          ) : <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />}
+        </button>
+        <span
+          className="h-2 w-2 shrink-0 rounded-full"
+          style={{ backgroundColor: categoryColorVar(node.category) }}
+        />
+        <span className={cn("min-w-0 flex-1 truncate", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
+          {node.title}
+        </span>
+        {node.priority === "asap" && (
+          <span className="rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-destructive">
+            ASAP
+          </span>
+        )}
+        <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
+          <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
+            <Plus className="h-3.5 w-3.5" />
+          </IconBtn>
+          {!isRoot && (
+            <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
+              <Plus className="h-3.5 w-3.5 rotate-45" />
+            </IconBtn>
+          )}
+          <IconBtn label="Edit" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
+            <Pencil className="h-3.5 w-3.5" />
+          </IconBtn>
+          {!isRoot && (
+            <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </IconBtn>
+          )}
+        </div>
+      </div>
+      {!collapsed && hasChildren && (
+        <div>
+          {node.children.map((c) => (
+            <OutlineRow
+              key={c.id}
+              node={c}
+              depth={depth + 1}
+              data={data}
+              selectedId={selectedId}
+              searchMatches={searchMatches}
+              searchActive={searchActive}
+              onSelect={onSelect}
+              onAddChild={onAddChild}
+              onAddSibling={onAddSibling}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleCollapse={onToggleCollapse}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IconBtn({
+  children,
+  label,
+  onClick,
+  danger,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onClick: (e: React.MouseEvent) => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      className={cn(
+        "rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground",
+        danger && "hover:bg-destructive/10 hover:text-destructive",
+      )}
+    >
+      {children}
+    </button>
+  );
+}

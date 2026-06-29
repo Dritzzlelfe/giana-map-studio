@@ -35,10 +35,11 @@ export function OutlineView(props: Props) {
 
   // Auto-expand ancestors when selectedId changes so the selected row is visible.
   useEffect(() => {
-    if (!props.selectedId || !props.data) return;
+    const sid = props.selectedId;
+    if (!sid || !props.data) return;
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      let current = props.data.byId[props.selectedId];
+      let current = props.data.byId[sid];
       while (current?.parent_id) {
         next.add(current.parent_id);
         current = props.data.byId[current.parent_id];

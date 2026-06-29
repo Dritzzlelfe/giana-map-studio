@@ -156,6 +156,15 @@ function InnerFlow(props: Props) {
     requestAnimationFrame(() => rf.fitView({ padding: 0.2, duration: 300 }));
   }, [nodes, rf]);
 
+  // Fit view to the selected node when selection changes (e.g. from Outline click).
+  useEffect(() => {
+    if (!selectedId) return;
+    const t = setTimeout(() => {
+      rf.fitView({ nodes: [{ id: selectedId }], duration: 300, padding: 0.3 });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [selectedId, rf]);
+
   const onNodeDragStop: NodeDragHandler = useCallback(
     (_event, node) => {
       updatePositions.mutate([{ id: node.id, pos_x: node.position.x, pos_y: node.position.y }]);

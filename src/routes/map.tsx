@@ -27,7 +27,7 @@ import { descendantCount, type MapNode } from "@/lib/mapApi";
 import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/map")({
   head: () => ({
     meta: [
       { title: "Giana Allen Design — Project Map" },

@@ -3,9 +3,11 @@ import {
   loadMap,
   insertNode,
   updateNode,
+  updateNodePositions,
   deleteNode,
   nextSortOrder,
   siblingSortOrderAfter,
+  assemble,
   type LoadedMap,
   type MapNode,
 } from "./mapApi";
@@ -24,7 +26,13 @@ export function useMap() {
 export function useAddChild() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { parentId: string | null; title: string; category?: string | null }) => {
+    mutationFn: async (input: {
+      parentId: string | null;
+      title: string;
+      category?: string | null;
+      pos_x?: number | null;
+      pos_y?: number | null;
+    }) => {
       const data = qc.getQueryData<LoadedMap | null>(MAP_QUERY_KEY);
       if (!data) throw new Error("Map not loaded");
       return insertNode({
@@ -33,6 +41,8 @@ export function useAddChild() {
         title: input.title,
         category: input.category ?? "field",
         sort_order: nextSortOrder(data, input.parentId),
+        pos_x: input.pos_x ?? null,
+        pos_y: input.pos_y ?? null,
       });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: MAP_QUERY_KEY }),

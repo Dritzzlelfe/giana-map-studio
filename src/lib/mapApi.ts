@@ -130,21 +130,23 @@ export async function insertNode(input: {
 }
 
 export async function updateNode(id: string, patch: Partial<MapNode>): Promise<MapNode> {
-  const allowed = (({ title, description, category, status, priority, color, sort_order, collapsed, parent_id }) => ({
-    title, description, category, status, priority, color, sort_order, collapsed, parent_id,
-  }))(patch as MapNode);
   const cleaned: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(allowed)) if (v !== undefined) cleaned[k] = v;
+  const keys = ["title", "description", "category", "status", "priority", "color", "sort_order", "collapsed", "parent_id"] as const;
+  for (const k of keys) {
+    const v = (patch as Record<string, unknown>)[k];
+    if (v !== undefined) cleaned[k] = v;
+  }
 
   const { data, error } = await supabase
     .from("map_nodes")
-    .update(cleaned)
+    .update(cleaned as never)
     .eq("id", id)
     .select("*")
     .single();
   if (error) throw error;
   return data as MapNode;
 }
+
 
 export async function deleteNode(id: string): Promise<void> {
   const { error } = await supabase.from("map_nodes").delete().eq("id", id);

@@ -134,6 +134,25 @@ function Index() {
     if (!editing) setEditingId((cur) => (cur === id ? null : cur));
   };
 
+  // Keyboard shortcut: "N" adds a child to the selected node (or top-level if none).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "n" && e.key !== "N") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+      if (deleteTarget || drawerOpen) return;
+      if (!data) return;
+      e.preventDefault();
+      const parentId = selectedId ?? data.rootId;
+      if (parentId) handleAddChild(parentId);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, data, deleteTarget, drawerOpen]);
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <Toaster richColors position="top-right" />

@@ -20,7 +20,7 @@ export type Vendor = {
   contact_name: string | null;
   contact_info: string | null;
   trade_account_no: string | null;
-  account_status: string | null;
+  account_status: string;
   notes: string | null;
 };
 

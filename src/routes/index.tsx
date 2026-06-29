@@ -126,6 +126,14 @@ function Index() {
     handleAddChild(data.rootId);
   };
 
+  const handleCommitTitle = (id: string, title: string) => {
+    updateNode.mutate({ id, patch: { title } });
+    setEditingId((cur) => (cur === id ? null : cur));
+  };
+  const handleEditingChange = (id: string, editing: boolean) => {
+    if (!editing) setEditingId((cur) => (cur === id ? null : cur));
+  };
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <Toaster richColors position="top-right" />

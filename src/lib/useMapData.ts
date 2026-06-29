@@ -96,6 +96,31 @@ export function useUpdateNode() {
   });
 }
 
+export function useUpdateNodePositions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (updates: { id: string; pos_x: number; pos_y: number }[]) =>
+      updateNodePositions(updates),
+    onMutate: async (updates) => {
+      await qc.cancelQueries({ queryKey: MAP_QUERY_KEY });
+      const prev = qc.getQueryData<LoadedMap | null>(MAP_QUERY_KEY);
+      if (prev) {
+        const byId = new Map(updates.map((u) => [u.id, u]));
+        const nodes = prev.nodes.map((n) => {
+          const u = byId.get(n.id);
+          return u ? { ...n, pos_x: u.pos_x, pos_y: u.pos_y } : n;
+        });
+        qc.setQueryData(MAP_QUERY_KEY, assemble(prev.map, nodes));
+      }
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(MAP_QUERY_KEY, ctx.prev);
+      toast.error(e.message || "Failed to save positions");
+    },
+  });
+}
+
 export function useDeleteNode() {
   const qc = useQueryClient();
   return useMutation({

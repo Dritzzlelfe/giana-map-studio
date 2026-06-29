@@ -14,6 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      items: {
+        Row: {
+          balance_due_on_delivery: number | null
+          category_id: string | null
+          client_paid_gad: boolean
+          client_price: number | null
+          created_at: string
+          delivery_address: string | null
+          delivery_date: string | null
+          description: string | null
+          design_placement: string | null
+          gad_cost: number | null
+          gad_paid_vendor: boolean
+          id: string
+          installer: string | null
+          lead_time: string | null
+          logistics_location: string | null
+          ordered_by: string | null
+          priority: string | null
+          qty_needed: number | null
+          qty_ordered: number | null
+          room_id: string | null
+          sku: string | null
+          status: string | null
+          storage_address: string | null
+          storage_name: string | null
+          title: string
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          balance_due_on_delivery?: number | null
+          category_id?: string | null
+          client_paid_gad?: boolean
+          client_price?: number | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          description?: string | null
+          design_placement?: string | null
+          gad_cost?: number | null
+          gad_paid_vendor?: boolean
+          id?: string
+          installer?: string | null
+          lead_time?: string | null
+          logistics_location?: string | null
+          ordered_by?: string | null
+          priority?: string | null
+          qty_needed?: number | null
+          qty_ordered?: number | null
+          room_id?: string | null
+          sku?: string | null
+          status?: string | null
+          storage_address?: string | null
+          storage_name?: string | null
+          title: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          balance_due_on_delivery?: number | null
+          category_id?: string | null
+          client_paid_gad?: boolean
+          client_price?: number | null
+          created_at?: string
+          delivery_address?: string | null
+          delivery_date?: string | null
+          description?: string | null
+          design_placement?: string | null
+          gad_cost?: number | null
+          gad_paid_vendor?: boolean
+          id?: string
+          installer?: string | null
+          lead_time?: string | null
+          logistics_location?: string | null
+          ordered_by?: string | null
+          priority?: string | null
+          qty_needed?: number | null
+          qty_ordered?: number | null
+          room_id?: string | null
+          sku?: string | null
+          status?: string | null
+          storage_address?: string | null
+          storage_name?: string | null
+          title?: string
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_installer_fkey"
+            columns: ["installer"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       map_nodes: {
         Row: {
           category: string | null
@@ -98,6 +251,96 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      people: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rooms: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          account_status: string
+          contact_info: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          trade_account_no: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_status?: string
+          contact_info?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          trade_account_no?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_status?: string
+          contact_info?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          trade_account_no?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

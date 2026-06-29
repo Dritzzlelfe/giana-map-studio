@@ -1,296 +1,160 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Network, List, Search, Download, Plus } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MindMapView } from "@/components/map/MindMapView";
-import { OutlineView } from "@/components/map/OutlineView";
-import { NodeDrawer } from "@/components/map/NodeDrawer";
-import { DeleteNodeDialog } from "@/components/map/DeleteNodeDialog";
-import { CategoryLegend } from "@/components/map/CategoryLegend";
-import {
-  useMap,
-  useAddChild,
-  useAddSibling,
-  useUpdateNode,
-  useDeleteNode,
-} from "@/lib/useMapData";
-import { descendantCount, type MapNode } from "@/lib/mapApi";
-import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { AppShell } from "@/components/shell/AppShell";
+import { useItemsData } from "@/lib/useItemsData";
+import { rollupStatus, type Category, type Item, type Room } from "@/lib/itemsApi";
+import { StatusDot } from "@/components/items/StatusDot";
+import { CellPanel } from "@/components/items/CellPanel";
+import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Giana Allen Design — Project Map" },
-      { name: "description", content: "Visual functional map of the GAD interior design project management tool." },
-      { property: "og:title", content: "Giana Allen Design — Project Map" },
-      { property: "og:description", content: "Visual functional map of the GAD interior design project management tool." },
+      { title: "Matrix — Giana Allen Design Project Map" },
+      { name: "description", content: "Rooms × categories matrix view over the project items." },
     ],
   }),
-  component: Index,
+  component: MatrixPage,
 });
 
-type ViewMode = "map" | "outline";
+function MatrixPage() {
+  const { data, isLoading, error } = useItemsData();
+  const [cell, setCell] = useState<{ room: Room; category: Category } | null>(null);
+  const [editing, setEditing] = useState<Item | null>(null);
 
-function Index() {
-  const { data, isLoading, error } = useMap();
-  const addChild = useAddChild();
-  const addSibling = useAddSibling();
-  const updateNode = useUpdateNode();
-  const deleteNode = useDeleteNode();
-
-  const [view, setView] = useState<ViewMode>("map");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-
-  const searchMatches = useMemo(() => {
-    const set = new Set<string>();
-    if (!data || !search.trim()) return set;
-    const q = search.trim().toLowerCase();
-    for (const n of data.nodes) {
-      if (n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q)) {
-        set.add(n.id);
-        // bubble matches up so ancestors stay visible
-        let p = n.parent_id;
-        while (p) {
-          set.add(p);
-          p = data.byId[p]?.parent_id ?? null;
-        }
-      }
+  const grouped = useMemo(() => {
+    const m = new Map<string, Item[]>();
+    if (!data) return m;
+    for (const it of data.items) {
+      if (!it.room_id || !it.category_id) continue;
+      const k = `${it.room_id}::${it.category_id}`;
+      const arr = m.get(k) ?? [];
+      arr.push(it);
+      m.set(k, arr);
     }
-    return set;
-  }, [data, search]);
-
-  const selected: MapNode | null = selectedId && data ? data.byId[selectedId] ?? null : null;
-  const deleteNodeRow: MapNode | null = deleteTarget && data ? data.byId[deleteTarget] ?? null : null;
-  const deleteCount = data && deleteTarget ? descendantCount(data, deleteTarget) : 0;
-
-  const handleSelect = (id: string) => setSelectedId(id);
-  const handleEdit = (id: string) => {
-    setSelectedId(id);
-    setDrawerOpen(true);
-  };
-  const handleAddChild = async (parentId: string) => {
-    const n = await addChild.mutateAsync({ parentId, title: "New node" });
-    setSelectedId(n.id);
-    setEditingId(n.id);
-  };
-  const handleAddChildAt = async (parentId: string | null, pos: { x: number; y: number }) => {
-    const n = await addChild.mutateAsync({ parentId, title: "New node", pos_x: pos.x, pos_y: pos.y });
-    setSelectedId(n.id);
-    setEditingId(n.id);
-  };
-  const handleAddSibling = async (siblingId: string) => {
-    const n = await addSibling.mutateAsync({ siblingId, title: "New node" });
-    setSelectedId(n.id);
-    setEditingId(n.id);
-  };
-  const handleToggleCollapse = (id: string) => {
-    if (!data) return;
-    const n = data.byId[id];
-    if (!n) return;
-    updateNode.mutate({ id, patch: { collapsed: !n.collapsed } });
-  };
-  const handlePatch = (patch: Partial<MapNode>) => {
-    if (!selected) return;
-    updateNode.mutate({ id: selected.id, patch });
-  };
-  const handleDelete = (id: string) => setDeleteTarget(id);
-  const confirmDelete = () => {
-    if (!deleteTarget) return;
-    deleteNode.mutate(deleteTarget);
-    if (selectedId === deleteTarget) {
-      setSelectedId(null);
-      setDrawerOpen(false);
-    }
-    setDeleteTarget(null);
-  };
-
-  const handleExport = (kind: "json" | "md") => {
-    if (!data?.tree) return;
-    if (kind === "json") {
-      downloadText("gad-project-map.json", treeToJson(data.tree), "application/json");
-    } else {
-      downloadText("gad-project-map.md", treeToMarkdown(data.tree), "text/markdown");
-    }
-  };
-
-  const handleAddTopLevel = () => {
-    if (!data?.rootId) return;
-    handleAddChild(data.rootId);
-  };
-
-  const handleCommitTitle = (id: string, title: string) => {
-    updateNode.mutate({ id, patch: { title } });
-    setEditingId((cur) => (cur === id ? null : cur));
-  };
-  const handleEditingChange = (id: string, editing: boolean) => {
-    if (!editing) setEditingId((cur) => (cur === id ? null : cur));
-  };
-
-  // Keyboard shortcut: "N" adds a child to the selected node (or top-level if none).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "n" && e.key !== "N") return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      const tag = t?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
-      if (deleteTarget || drawerOpen) return;
-      if (!data) return;
-      e.preventDefault();
-      const parentId = selectedId ?? data.rootId;
-      if (parentId) handleAddChild(parentId);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, data, deleteTarget, drawerOpen]);
+    return m;
+  }, [data]);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <Toaster richColors position="top-right" />
-
-      <header className="shrink-0 border-b bg-card/60 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-3 px-5 py-3">
-          <div className="min-w-0">
-            <h1 className="font-display text-xl font-semibold tracking-tight">
-              Giana Allen Design <span className="text-muted-foreground">— Project Map</span>
-            </h1>
-            {data?.map.name && (
-              <p className="truncate text-xs text-muted-foreground">{data.map.name}</p>
-            )}
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search nodes…"
-              className="h-9 w-56 pl-8"
-            />
-          </div>
-
-          <ToggleGroup
-            type="single"
-            value={view}
-            onValueChange={(v) => v && setView(v as ViewMode)}
-            className="rounded-md border bg-card lg:hidden"
-          >
-            <ToggleGroupItem value="map" className="h-9 px-3">
-              <Network className="mr-1.5 h-4 w-4" /> Map
-            </ToggleGroupItem>
-            <ToggleGroupItem value="outline" className="h-9 px-3">
-              <List className="mr-1.5 h-4 w-4" /> Outline
-            </ToggleGroupItem>
-          </ToggleGroup>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <Download className="mr-1.5 h-4 w-4" /> Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("md")}>Markdown outline</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("json")}>JSON</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button size="sm" className="h-9" onClick={handleAddTopLevel} disabled={!data?.rootId}>
-            <Plus className="mr-1.5 h-4 w-4" /> Add node
-          </Button>
+    <AppShell>
+      {isLoading && (
+        <div className="flex flex-1 items-center justify-center text-muted-foreground">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
         </div>
-        <div className="border-t bg-background/50 px-5 py-2">
-          <CategoryLegend />
+      )}
+      {error && <div className="p-6 text-destructive">{(error as Error).message}</div>}
+      {data && (
+        <div className="flex-1 overflow-auto p-5">
+          <div className="mb-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <Legend />
+          </div>
+          <div className="rounded-md border bg-card">
+            <div className="overflow-auto">
+              <table className="w-full border-separate border-spacing-0 text-sm">
+                <thead className="sticky top-0 z-10 bg-card">
+                  <tr>
+                    <th className="sticky left-0 z-20 border-b border-r bg-card px-3 py-2 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      Room
+                    </th>
+                    {data.categories.map((c) => (
+                      <th
+                        key={c.id}
+                        className="border-b px-3 py-2 text-left text-xs uppercase tracking-wide text-muted-foreground"
+                      >
+                        <Link
+                          to="/schedule/$categoryKey"
+                          params={{ categoryKey: c.key }}
+                          className="hover:underline"
+                        >
+                          {c.label}
+                        </Link>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.rooms
+                    .filter((r) => r.active)
+                    .map((room) => (
+                      <tr key={room.id}>
+                        <th className="sticky left-0 z-10 border-b border-r bg-card px-3 py-2 text-left font-medium">
+                          <Link to="/room/$roomId" params={{ roomId: room.id }} className="hover:underline">
+                            {room.name}
+                          </Link>
+                        </th>
+                        {data.categories.map((c) => {
+                          const items = grouped.get(`${room.id}::${c.id}`) ?? [];
+                          const roll = rollupStatus(items);
+                          const asap = items.some((i) => i.priority === "asap");
+                          return (
+                            <td key={c.id} className="border-b p-1">
+                              <button
+                                onClick={() => setCell({ room, category: c })}
+                                className={cn(
+                                  "group flex h-full w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left transition-colors",
+                                  items.length > 0
+                                    ? "hover:bg-accent/60"
+                                    : "text-muted-foreground hover:bg-accent/40",
+                                )}
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <StatusDot roll={roll} />
+                                  <span className="text-sm">{items.length || "+"}</span>
+                                </span>
+                                {asap && (
+                                  <span className="rounded bg-rose-100 px-1 py-0.5 text-[9px] font-semibold uppercase text-rose-800">
+                                    ASAP
+                                  </span>
+                                )}
+                              </button>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </header>
+      )}
 
-      <main className="relative flex flex-1 min-h-0 flex-col lg:flex-row">
-        {isLoading && (
-          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading map…
-          </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-destructive">
-            Failed to load map: {(error as Error).message}
-          </div>
-        )}
-        {data && !data.tree && (
-          <div className="absolute inset-0 z-50 flex h-full items-center justify-center bg-background/80 text-muted-foreground">
-            Map is empty.
-          </div>
-        )}
-        {data?.tree && (
-          <>
-            <div className={cn("flex-1 min-h-0", view === "outline" && "hidden lg:block")}>
-              <MindMapView
-                data={data}
-                selectedId={selectedId}
-                editingId={editingId}
-                searchMatches={searchMatches}
-                searchActive={search.trim().length > 0}
-                onSelect={handleSelect}
-                onAddChild={handleAddChild}
-                onAddChildAt={handleAddChildAt}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggleCollapse={handleToggleCollapse}
-                onCommitTitle={handleCommitTitle}
-                onEditingChange={handleEditingChange}
-              />
-            </div>
-            <div className={cn("border-l bg-background overflow-auto", view === "map" && "hidden lg:block", "lg:w-[35%] lg:max-w-[420px] lg:min-w-[300px]")}>
-              <OutlineView
-                data={data}
-                selectedId={selectedId}
-                editingId={editingId}
-                searchMatches={searchMatches}
-                searchActive={search.trim().length > 0}
-                onSelect={handleSelect}
-                onAddChild={handleAddChild}
-                onAddSibling={handleAddSibling}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onToggleCollapse={handleToggleCollapse}
-                onCommitTitle={handleCommitTitle}
-                onEditingChange={handleEditingChange}
-              />
-            </div>
-          </>
-        )}
-      </main>
+      {data && (
+        <>
+          <CellPanel
+            open={!!cell}
+            onOpenChange={(o) => !o && setCell(null)}
+            room={cell?.room ?? null}
+            category={cell?.category ?? null}
+            items={
+              cell
+                ? data.items.filter((i) => i.room_id === cell.room.id && i.category_id === cell.category.id)
+                : []
+            }
+            data={data}
+            onEdit={(it) => setEditing(it)}
+          />
+          <ItemDrawer
+            item={editing}
+            data={data}
+            open={!!editing}
+            onOpenChange={(o) => !o && setEditing(null)}
+          />
+        </>
+      )}
+    </AppShell>
+  );
+}
 
-      <NodeDrawer
-        node={selected}
-        open={drawerOpen && !!selected}
-        onOpenChange={setDrawerOpen}
-        onPatch={handlePatch}
-      />
-
-      <DeleteNodeDialog
-        open={!!deleteNodeRow}
-        title={deleteNodeRow?.title ?? ""}
-        descendantCount={deleteCount}
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-      />
+function Legend() {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <span className="flex items-center gap-1.5"><StatusDot roll="all_delivered" /> All delivered</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="in_motion" /> Ordered</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="needs_action" /> To spec / order / hold</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="empty" /> Empty</span>
     </div>
   );
 }

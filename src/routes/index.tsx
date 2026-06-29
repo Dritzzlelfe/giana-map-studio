@@ -190,7 +190,7 @@ function Index() {
             type="single"
             value={view}
             onValueChange={(v) => v && setView(v as ViewMode)}
-            className="rounded-md border bg-card"
+            className="rounded-md border bg-card lg:hidden"
           >
             <ToggleGroupItem value="map" className="h-9 px-3">
               <Network className="mr-1.5 h-4 w-4" /> Map

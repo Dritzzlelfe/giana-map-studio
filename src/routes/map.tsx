@@ -57,14 +57,28 @@ function Index() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<CategoryId | null>(null);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<CategoryId, number>> = {};
+    if (!data) return counts;
+    for (const n of data.nodes) {
+      const c = (n.category ?? "field") as CategoryId;
+      counts[c] = (counts[c] ?? 0) + 1;
+    }
+    return counts;
+  }, [data]);
+
   const searchMatches = useMemo(() => {
     const set = new Set<string>();
-    if (!data || !search.trim()) return set;
+    if (!data) return set;
     const q = search.trim().toLowerCase();
+    if (!q && !categoryFilter) return set;
     for (const n of data.nodes) {
-      if (n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q)) {
+      const textMatch = q
+        ? n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q)
+        : true;
+      const catMatch = categoryFilter ? (n.category ?? "field") === categoryFilter : true;
+      if (textMatch && catMatch) {
         set.add(n.id);
-        // bubble matches up so ancestors stay visible
         let p = n.parent_id;
         while (p) {
           set.add(p);
@@ -73,7 +87,9 @@ function Index() {
       }
     }
     return set;
-  }, [data, search]);
+  }, [data, search, categoryFilter]);
+
+  const filterActive = search.trim().length > 0 || !!categoryFilter;
 
   const selected: MapNode | null = selectedId && data ? data.byId[selectedId] ?? null : null;
   const deleteNodeRow: MapNode | null = deleteTarget && data ? data.byId[deleteTarget] ?? null : null;

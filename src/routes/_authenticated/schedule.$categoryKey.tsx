@@ -8,17 +8,22 @@ import { ItemDrawer } from "@/components/items/ItemDrawer";
 import type { Item } from "@/lib/itemsApi";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/room/$roomId")({
-  head: () => ({ meta: [{ title: "Room — Project Map" }] }),
-  component: RoomPage,
+export const Route = createFileRoute("/_authenticated/schedule/$categoryKey")({
+  head: () => ({ meta: [{ title: "Schedule — Project Map" }] }),
+  component: SchedulePage,
 });
 
-function RoomPage() {
-  const { roomId } = useParams({ from: "/room/$roomId" });
+function SchedulePage() {
+  const { categoryKey } = useParams({ from: "/schedule/$categoryKey" });
   const { data, isLoading, error } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
 
-  const room = data?.roomById[roomId] ?? null;
+  const category = data?.categoryByKey[categoryKey] ?? null;
+  const items = data
+    ? data.items
+        .filter((i) => category && i.category_id === category.id)
+        .sort((a, b) => (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"))
+    : [];
 
   return (
     <AppShell>
@@ -31,50 +36,31 @@ function RoomPage() {
       {data && (
         <div className="flex-1 overflow-auto p-5">
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">Room:</span>
-            {data.rooms.map((r) => (
+            <span className="text-sm text-muted-foreground">Schedule by trade:</span>
+            {data.categories.map((c) => (
               <Link
-                key={r.id}
-                to="/room/$roomId"
-                params={{ roomId: r.id }}
+                key={c.id}
+                to="/schedule/$categoryKey"
+                params={{ categoryKey: c.key }}
                 className={cn(
                   "rounded border px-2 py-1 text-sm transition-colors",
-                  r.id === roomId
+                  c.key === categoryKey
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card hover:bg-accent",
-                  !r.active && "opacity-60",
                 )}
               >
-                {r.name}
+                {c.label}
               </Link>
             ))}
           </div>
-          {!room ? (
+          {!category ? (
             <div className="rounded-md border border-dashed p-10 text-center text-muted-foreground">
-              Room not found.
+              Category not found.
             </div>
           ) : (
             <>
-              <h2 className="mb-3 font-display text-lg font-semibold">{room.name} — all categories</h2>
-              {data.categories.map((c) => {
-                const items = data.items
-                  .filter((i) => i.room_id === room.id && i.category_id === c.id)
-                  .sort((a, b) => (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"));
-                if (items.length === 0) return null;
-                return (
-                  <div key={c.id} className="mb-6">
-                    <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                      {c.label}
-                    </h3>
-                    <ItemsTable items={items} data={data} onEdit={setEditing} showRoom={false} showCategory={false} />
-                  </div>
-                );
-              })}
-              {data.items.filter((i) => i.room_id === room.id).length === 0 && (
-                <div className="rounded-md border border-dashed p-10 text-center text-muted-foreground">
-                  No items in this room yet.
-                </div>
-              )}
+              <h2 className="mb-3 font-display text-lg font-semibold">{category.label} — across all rooms</h2>
+              <ItemsTable items={items} data={data} onEdit={setEditing} showRoom showCategory={false} />
             </>
           )}
           <ItemDrawer

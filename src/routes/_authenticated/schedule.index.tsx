@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
 
-export const Route = createFileRoute("/schedule/")({
+export const Route = createFileRoute("/_authenticated/schedule/")({
   head: () => ({ meta: [{ title: "Schedule — Project Map" }] }),
   component: SchedulePicker,
 });

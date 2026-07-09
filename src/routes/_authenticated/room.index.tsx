@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
 
-export const Route = createFileRoute("/room/")({
+export const Route = createFileRoute("/_authenticated/room/")({
   head: () => ({ meta: [{ title: "Room — Project Map" }] }),
   component: RoomPicker,
 });

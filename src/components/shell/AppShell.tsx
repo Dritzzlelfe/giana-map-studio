@@ -1,8 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { Grid3x3, ListTree, Home as HomeIcon, Network, LayoutDashboard } from "lucide-react";
+import { Grid3x3, ListTree, Home as HomeIcon, Network, LayoutDashboard, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+
 
 const NAV = [
   { to: "/", label: "Matrix", icon: Grid3x3, exact: true },
@@ -14,6 +18,14 @@ const NAV = [
 
 export function AppShell({ children, right }: { children: ReactNode; right?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const router = useRouter();
+  const qc = useQueryClient();
+  async function handleSignOut() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    router.navigate({ to: "/auth", replace: true });
+  }
   return (
     <div className="flex h-screen flex-col bg-background">
       <Toaster richColors position="top-right" />
@@ -47,6 +59,9 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
           </nav>
           <div className="flex-1" />
           {right}
+          <Button variant="ghost" size="sm" onClick={handleSignOut} title="Sign out">
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </header>
       <main className="relative flex flex-1 min-h-0 flex-col overflow-hidden">{children}</main>

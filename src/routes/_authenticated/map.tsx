@@ -28,7 +28,7 @@ import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
 import { cn } from "@/lib/utils";
 import type { CategoryId } from "@/lib/categories";
 
-export const Route = createFileRoute("/map")({
+export const Route = createFileRoute("/_authenticated/map")({
   head: () => ({
     meta: [
       { title: "Giana Allen Design — Project Map" },

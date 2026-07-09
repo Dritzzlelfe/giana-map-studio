@@ -9,7 +9,7 @@ import { CellPanel } from "@/components/items/CellPanel";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Matrix — Giana Allen Design Project Map" },

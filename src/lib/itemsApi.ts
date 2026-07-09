@@ -52,6 +52,7 @@ export type Item = {
   storage_name: string | null;
   storage_address: string | null;
   logistics_location: string | null;
+  option_source: string | null;
   gad_cost: number | null;
   client_price: number | null;
   client_paid_gad: boolean;

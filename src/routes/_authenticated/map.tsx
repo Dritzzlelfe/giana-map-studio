@@ -67,6 +67,38 @@ function Index() {
     return counts;
   }, [data]);
 
+  const quickJumps = useMemo(() => {
+    if (!data) return [] as { label: string; id: string }[];
+    const labels = ["Root", "Rooms", "Schedule", "Trade"];
+    const out: { label: string; id: string }[] = [];
+    for (const label of labels) {
+      let id: string | undefined;
+      if (label === "Root") {
+        id = data.rootId ?? undefined;
+      } else {
+        const target = label.toLowerCase();
+        const match =
+          data.nodes.find((n) => n.title.trim().toLowerCase() === target) ??
+          data.nodes.find((n) => n.title.toLowerCase().includes(target));
+        id = match?.id;
+      }
+      if (id) out.push({ label, id });
+    }
+    return out;
+  }, [data]);
+
+  const jumpTo = (id: string) => {
+    if (data) {
+      let p = data.byId[id]?.parent_id ?? null;
+      while (p) {
+        const anc = data.byId[p];
+        if (anc?.collapsed) updateNode.mutate({ id: anc.id, patch: { collapsed: false } });
+        p = anc?.parent_id ?? null;
+      }
+    }
+    setSelectedId(id);
+  };
+
   const searchMatches = useMemo(() => {
     const set = new Set<string>();
     if (!data) return set;
@@ -220,6 +252,22 @@ function Index() {
 
   return (
     <AppShell right={right}>
+      {quickJumps.length > 0 && (
+        <div className="shrink-0 border-b bg-background/60 px-5 py-2 flex items-center gap-2 overflow-x-auto">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Jump to:</span>
+          {quickJumps.map((j) => (
+            <Button
+              key={j.id}
+              variant={selectedId === j.id ? "default" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-xs"
+              onClick={() => jumpTo(j.id)}
+            >
+              {j.label}
+            </Button>
+          ))}
+        </div>
+      )}
       <div className="shrink-0 border-b bg-background/50 px-5 py-2">
         <CategoryLegend
           activeCategory={categoryFilter}

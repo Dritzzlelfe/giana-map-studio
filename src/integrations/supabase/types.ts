@@ -58,6 +58,7 @@ export type Database = {
           installer: string | null
           lead_time: string | null
           logistics_location: string | null
+          option_source: string | null
           ordered_by: string | null
           priority: string | null
           qty_needed: number | null
@@ -87,6 +88,7 @@ export type Database = {
           installer?: string | null
           lead_time?: string | null
           logistics_location?: string | null
+          option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
           qty_needed?: number | null
@@ -116,6 +118,7 @@ export type Database = {
           installer?: string | null
           lead_time?: string | null
           logistics_location?: string | null
+          option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
           qty_needed?: number | null

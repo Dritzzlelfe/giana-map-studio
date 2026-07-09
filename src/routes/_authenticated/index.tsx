@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
-import { rollupStatus, type Category, type Item, type Room } from "@/lib/itemsApi";
+import { rollupStatus, countOptions, type Category, type Item, type Room } from "@/lib/itemsApi";
 import { StatusDot } from "@/components/items/StatusDot";
 import { CellPanel } from "@/components/items/CellPanel";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
@@ -87,7 +87,9 @@ function MatrixPage() {
                         {data.categories.map((c) => {
                           const items = grouped.get(`${room.id}::${c.id}`) ?? [];
                           const roll = rollupStatus(items);
-                          const asap = items.some((i) => i.priority === "asap");
+                          const opts = countOptions(items);
+                          const committed = items.length - opts;
+                          const asap = items.some((i) => i.priority === "asap" && i.status !== "option");
                           return (
                             <td key={c.id} className="border-b p-1">
                               <button
@@ -101,7 +103,10 @@ function MatrixPage() {
                               >
                                 <span className="flex items-center gap-1.5">
                                   <StatusDot roll={roll} />
-                                  <span className="text-sm">{items.length || "+"}</span>
+                                  <span className="text-sm">{committed || (items.length ? "" : "+")}</span>
+                                  {opts > 0 && (
+                                    <span className="text-[10px] text-muted-foreground">+{opts} opt</span>
+                                  )}
                                 </span>
                                 {asap && (
                                   <span className="rounded bg-rose-100 px-1 py-0.5 text-[9px] font-semibold uppercase text-rose-800">

@@ -217,6 +217,14 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
             </Select>
           </Field>
 
+          <Field label="Option source" className="col-span-2">
+            <Input
+              placeholder="Store, website, or contact (for options being considered)"
+              value={item.option_source ?? ""}
+              onChange={(e) => patch({ option_source: e.target.value || null })}
+            />
+          </Field>
+
           <Field label="Delivery date">
             <Input
               type="date"

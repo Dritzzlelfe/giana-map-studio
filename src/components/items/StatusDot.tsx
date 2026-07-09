@@ -14,6 +14,7 @@ export function StatusDot({ roll, className }: { roll: StatusRoll; className?: s
 export function StatusBadge({ status }: { status: string | null }) {
   if (!status) return <span className="text-muted-foreground">—</span>;
   const palette: Record<string, string> = {
+    option: "border border-dashed border-muted-foreground/40 bg-muted/40 text-muted-foreground",
     to_spec: "bg-rose-100 text-rose-800",
     to_order: "bg-rose-100 text-rose-800",
     ordered: "bg-amber-100 text-amber-800",
@@ -21,6 +22,7 @@ export function StatusBadge({ status }: { status: string | null }) {
     on_hold: "bg-slate-200 text-slate-800",
   };
   const labels: Record<string, string> = {
+    option: "Option",
     to_spec: "To spec",
     to_order: "To order",
     ordered: "Ordered",

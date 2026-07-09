@@ -52,6 +52,7 @@ export type Item = {
   storage_name: string | null;
   storage_address: string | null;
   logistics_location: string | null;
+  option_source: string | null;
   gad_cost: number | null;
   client_price: number | null;
   client_paid_gad: boolean;
@@ -138,6 +139,7 @@ export async function createPerson(patch: Partial<Person> & { name: string }): P
 }
 
 export const STATUSES = [
+  { id: "option", label: "Option" },
   { id: "to_spec", label: "To spec" },
   { id: "to_order", label: "To order" },
   { id: "ordered", label: "Ordered" },
@@ -155,16 +157,26 @@ export const LOGISTICS_LOCATIONS = [
   { id: "france_ship", label: "France ship" },
   { id: "mississippi_truck", label: "Mississippi truck" },
   { id: "mississippi_warehouse", label: "Mississippi warehouse" },
+  { id: "gad_warehouse", label: "GAD warehouse" },
+  { id: "brownstone_movers", label: "Brownstone Movers" },
+  { id: "third_party_storage", label: "Third-party storage" },
+  { id: "residence", label: "Residence" },
   { id: "ny", label: "NY" },
   { id: "na", label: "N/A" },
 ] as const;
 
 export type StatusRoll = "empty" | "all_delivered" | "in_motion" | "needs_action";
 
+// Options are ideas being weighed — excluded from the red/amber/green roll-up.
 export function rollupStatus(items: Item[]): StatusRoll {
-  if (items.length === 0) return "empty";
-  if (items.every((i) => i.status === "delivered")) return "all_delivered";
-  if (items.some((i) => i.status === "on_hold" || i.status === "to_order" || i.status === "to_spec"))
+  const committed = items.filter((i) => i.status !== "option");
+  if (committed.length === 0) return "empty";
+  if (committed.every((i) => i.status === "delivered")) return "all_delivered";
+  if (committed.some((i) => i.status === "on_hold" || i.status === "to_order" || i.status === "to_spec"))
     return "needs_action";
   return "in_motion";
+}
+
+export function countOptions(items: Item[]): number {
+  return items.filter((i) => i.status === "option").length;
 }

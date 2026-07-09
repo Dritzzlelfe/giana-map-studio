@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/schedule/$categoryKey")({
 });
 
 function SchedulePage() {
-  const { categoryKey } = useParams({ from: "/schedule/$categoryKey" });
+  const { categoryKey } = useParams({ from: "/_authenticated/schedule/$categoryKey" });
   const { data, isLoading, error } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
 

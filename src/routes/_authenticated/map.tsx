@@ -252,6 +252,22 @@ function Index() {
 
   return (
     <AppShell right={right}>
+      {quickJumps.length > 0 && (
+        <div className="shrink-0 border-b bg-background/60 px-5 py-2 flex items-center gap-2 overflow-x-auto">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Jump to:</span>
+          {quickJumps.map((j) => (
+            <Button
+              key={j.id}
+              variant={selectedId === j.id ? "default" : "outline"}
+              size="sm"
+              className="h-7 px-2.5 text-xs"
+              onClick={() => jumpTo(j.id)}
+            >
+              {j.label}
+            </Button>
+          ))}
+        </div>
+      )}
       <div className="shrink-0 border-b bg-background/50 px-5 py-2">
         <CategoryLegend
           activeCategory={categoryFilter}

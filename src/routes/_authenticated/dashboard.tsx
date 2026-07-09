@@ -7,7 +7,7 @@ import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi"
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Project Map" }] }),
   component: DashboardPage,
 });

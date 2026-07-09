@@ -8,7 +8,7 @@ import { ItemDrawer } from "@/components/items/ItemDrawer";
 import type { Item } from "@/lib/itemsApi";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/room/$roomId")({
+export const Route = createFileRoute("/_authenticated/room/$roomId")({
   head: () => ({ meta: [{ title: "Room — Project Map" }] }),
   component: RoomPage,
 });

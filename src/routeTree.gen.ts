@@ -9,180 +9,182 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MapRouteImport } from './routes/map'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ScheduleIndexRouteImport } from './routes/schedule.index'
-import { Route as RoomIndexRouteImport } from './routes/room.index'
-import { Route as ScheduleCategoryKeyRouteImport } from './routes/schedule.$categoryKey'
-import { Route as RoomRoomIdRouteImport } from './routes/room.$roomId'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedScheduleIndexRouteImport } from './routes/_authenticated/schedule.index'
+import { Route as AuthenticatedRoomIndexRouteImport } from './routes/_authenticated/room.index'
+import { Route as AuthenticatedScheduleCategoryKeyRouteImport } from './routes/_authenticated/schedule.$categoryKey'
+import { Route as AuthenticatedRoomRoomIdRouteImport } from './routes/_authenticated/room.$roomId'
 
-const MapRoute = MapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScheduleIndexRoute = ScheduleIndexRouteImport.update({
-  id: '/schedule/',
-  path: '/schedule/',
+const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
+  id: '/_authenticated/map',
+  path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RoomIndexRoute = RoomIndexRouteImport.update({
-  id: '/room/',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/_authenticated/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedScheduleIndexRoute =
+  AuthenticatedScheduleIndexRouteImport.update({
+    id: '/_authenticated/schedule/',
+    path: '/schedule/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedRoomIndexRoute = AuthenticatedRoomIndexRouteImport.update({
+  id: '/_authenticated/room/',
   path: '/room/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ScheduleCategoryKeyRoute = ScheduleCategoryKeyRouteImport.update({
-  id: '/schedule/$categoryKey',
-  path: '/schedule/$categoryKey',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoomRoomIdRoute = RoomRoomIdRouteImport.update({
-  id: '/room/$roomId',
+const AuthenticatedScheduleCategoryKeyRoute =
+  AuthenticatedScheduleCategoryKeyRouteImport.update({
+    id: '/_authenticated/schedule/$categoryKey',
+    path: '/schedule/$categoryKey',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedRoomRoomIdRoute = AuthenticatedRoomRoomIdRouteImport.update({
+  id: '/_authenticated/room/$roomId',
   path: '/room/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/map': typeof MapRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
-  '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
-  '/room/': typeof RoomIndexRoute
-  '/schedule/': typeof ScheduleIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/map': typeof AuthenticatedMapRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
+  '/schedule/$categoryKey': typeof AuthenticatedScheduleCategoryKeyRoute
+  '/room/': typeof AuthenticatedRoomIndexRoute
+  '/schedule/': typeof AuthenticatedScheduleIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/map': typeof MapRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
-  '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
-  '/room': typeof RoomIndexRoute
-  '/schedule': typeof ScheduleIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/map': typeof AuthenticatedMapRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
+  '/schedule/$categoryKey': typeof AuthenticatedScheduleCategoryKeyRoute
+  '/room': typeof AuthenticatedRoomIndexRoute
+  '/schedule': typeof AuthenticatedScheduleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
-  '/map': typeof MapRoute
-  '/room/$roomId': typeof RoomRoomIdRoute
-  '/schedule/$categoryKey': typeof ScheduleCategoryKeyRoute
-  '/room/': typeof RoomIndexRoute
-  '/schedule/': typeof ScheduleIndexRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/map': typeof AuthenticatedMapRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
+  '/_authenticated/schedule/$categoryKey': typeof AuthenticatedScheduleCategoryKeyRoute
+  '/_authenticated/room/': typeof AuthenticatedRoomIndexRoute
+  '/_authenticated/schedule/': typeof AuthenticatedScheduleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/dashboard'
     | '/map'
+    | '/'
     | '/room/$roomId'
     | '/schedule/$categoryKey'
     | '/room/'
     | '/schedule/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/dashboard'
     | '/map'
+    | '/'
     | '/room/$roomId'
     | '/schedule/$categoryKey'
     | '/room'
     | '/schedule'
   id:
     | '__root__'
-    | '/'
-    | '/dashboard'
-    | '/map'
-    | '/room/$roomId'
-    | '/schedule/$categoryKey'
-    | '/room/'
-    | '/schedule/'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/map'
+    | '/_authenticated/'
+    | '/_authenticated/room/$roomId'
+    | '/_authenticated/schedule/$categoryKey'
+    | '/_authenticated/room/'
+    | '/_authenticated/schedule/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
-  MapRoute: typeof MapRoute
-  RoomRoomIdRoute: typeof RoomRoomIdRoute
-  ScheduleCategoryKeyRoute: typeof ScheduleCategoryKeyRoute
-  RoomIndexRoute: typeof RoomIndexRoute
-  ScheduleIndexRoute: typeof ScheduleIndexRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMapRoute: typeof AuthenticatedMapRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedRoomRoomIdRoute: typeof AuthenticatedRoomRoomIdRoute
+  AuthenticatedScheduleCategoryKeyRoute: typeof AuthenticatedScheduleCategoryKeyRoute
+  AuthenticatedRoomIndexRoute: typeof AuthenticatedRoomIndexRoute
+  AuthenticatedScheduleIndexRoute: typeof AuthenticatedScheduleIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/map': {
-      id: '/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof MapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedule/': {
-      id: '/schedule/'
+    '/_authenticated/map': {
+      id: '/_authenticated/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AuthenticatedMapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/schedule/': {
+      id: '/_authenticated/schedule/'
       path: '/schedule'
       fullPath: '/schedule/'
-      preLoaderRoute: typeof ScheduleIndexRouteImport
+      preLoaderRoute: typeof AuthenticatedScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/room/': {
-      id: '/room/'
+    '/_authenticated/room/': {
+      id: '/_authenticated/room/'
       path: '/room'
       fullPath: '/room/'
-      preLoaderRoute: typeof RoomIndexRouteImport
+      preLoaderRoute: typeof AuthenticatedRoomIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedule/$categoryKey': {
-      id: '/schedule/$categoryKey'
+    '/_authenticated/schedule/$categoryKey': {
+      id: '/_authenticated/schedule/$categoryKey'
       path: '/schedule/$categoryKey'
       fullPath: '/schedule/$categoryKey'
-      preLoaderRoute: typeof ScheduleCategoryKeyRouteImport
+      preLoaderRoute: typeof AuthenticatedScheduleCategoryKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/room/$roomId': {
-      id: '/room/$roomId'
+    '/_authenticated/room/$roomId': {
+      id: '/_authenticated/room/$roomId'
       path: '/room/$roomId'
       fullPath: '/room/$roomId'
-      preLoaderRoute: typeof RoomRoomIdRouteImport
+      preLoaderRoute: typeof AuthenticatedRoomRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
-  MapRoute: MapRoute,
-  RoomRoomIdRoute: RoomRoomIdRoute,
-  ScheduleCategoryKeyRoute: ScheduleCategoryKeyRoute,
-  RoomIndexRoute: RoomIndexRoute,
-  ScheduleIndexRoute: ScheduleIndexRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMapRoute: AuthenticatedMapRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedRoomRoomIdRoute: AuthenticatedRoomRoomIdRoute,
+  AuthenticatedScheduleCategoryKeyRoute: AuthenticatedScheduleCategoryKeyRoute,
+  AuthenticatedRoomIndexRoute: AuthenticatedRoomIndexRoute,
+  AuthenticatedScheduleIndexRoute: AuthenticatedScheduleIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

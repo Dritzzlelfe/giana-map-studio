@@ -8,7 +8,7 @@ import { ItemDrawer } from "@/components/items/ItemDrawer";
 import type { Item } from "@/lib/itemsApi";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/schedule/$categoryKey")({
+export const Route = createFileRoute("/_authenticated/schedule/$categoryKey")({
   head: () => ({ meta: [{ title: "Schedule — Project Map" }] }),
   component: SchedulePage,
 });

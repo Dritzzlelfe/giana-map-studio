@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/room/$roomId")({
 });
 
 function RoomPage() {
-  const { roomId } = useParams({ from: "/room/$roomId" });
+  const { roomId } = useParams({ from: "/_authenticated/room/$roomId" });
   const { data, isLoading, error } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
 

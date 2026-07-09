@@ -67,6 +67,38 @@ function Index() {
     return counts;
   }, [data]);
 
+  const quickJumps = useMemo(() => {
+    if (!data) return [] as { label: string; id: string }[];
+    const labels = ["Root", "Rooms", "Schedule", "Trade"];
+    const out: { label: string; id: string }[] = [];
+    for (const label of labels) {
+      let id: string | undefined;
+      if (label === "Root") {
+        id = data.rootId ?? undefined;
+      } else {
+        const target = label.toLowerCase();
+        const match =
+          data.nodes.find((n) => n.title.trim().toLowerCase() === target) ??
+          data.nodes.find((n) => n.title.toLowerCase().includes(target));
+        id = match?.id;
+      }
+      if (id) out.push({ label, id });
+    }
+    return out;
+  }, [data]);
+
+  const jumpTo = (id: string) => {
+    if (data) {
+      let p = data.byId[id]?.parent_id ?? null;
+      while (p) {
+        const anc = data.byId[p];
+        if (anc?.collapsed) updateNode.mutate({ id: anc.id, patch: { collapsed: false } });
+        p = anc?.parent_id ?? null;
+      }
+    }
+    setSelectedId(id);
+  };
+
   const searchMatches = useMemo(() => {
     const set = new Set<string>();
     if (!data) return set;

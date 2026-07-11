@@ -62,15 +62,22 @@ export function usePreviewRoleKey(): [string | null, (v: string | null) => void]
   );
   useEffect(() => {
     const onChange = () => setKey(window.sessionStorage.getItem(PREVIEW_KEY));
+    window.addEventListener("gad:preview-role-change", onChange);
     window.addEventListener("storage", onChange);
-    return () => window.removeEventListener("storage", onChange);
+    return () => {
+      window.removeEventListener("gad:preview-role-change", onChange);
+      window.removeEventListener("storage", onChange);
+    };
   }, []);
   const update = (v: string | null) => {
     if (typeof window === "undefined") return;
     if (v) window.sessionStorage.setItem(PREVIEW_KEY, v);
     else window.sessionStorage.removeItem(PREVIEW_KEY);
     setKey(v);
-    window.dispatchEvent(new Event("storage"));
+    // Signal same-tab listeners: fetch interceptor picks it up on the next
+    // request, and the root subscriber invalidates router + query cache so
+    // every visible query re-reads through the impersonated role.
+    window.dispatchEvent(new Event("gad:preview-role-change"));
   };
   return [key, update];
 }

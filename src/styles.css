@@ -4,12 +4,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -32,6 +32,15 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
 
+  --color-paper: var(--background);
+  --color-sand: var(--surface-sand);
+  --color-ink: var(--foreground);
+  --color-rule: var(--rule-soft);
+  --color-status-needs: var(--status-needs);
+  --color-status-inflight: var(--status-inflight);
+  --color-status-settled: var(--status-settled);
+  --color-status-empty: var(--status-empty);
+
   --color-cat-root: var(--cat-root);
   --color-cat-rooms: var(--cat-rooms);
   --color-cat-schedule: var(--cat-schedule);
@@ -48,51 +57,69 @@
   --color-cat-field: var(--cat-field);
   --color-cat-action: var(--cat-action);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 4px;
 
-  --background: oklch(0.985 0.005 85);
-  --foreground: oklch(0.22 0.02 250);
+  /* Editorial paper palette */
+  --background: #f5efef;
+  --surface-sand: #f2efea;
+  --foreground: #1a1a1a;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 250);
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
 
-  --primary: oklch(0.32 0.04 260);
-  --primary-foreground: oklch(0.98 0.005 85);
-  --secondary: oklch(0.95 0.01 85);
-  --secondary-foreground: oklch(0.3 0.03 260);
-  --muted: oklch(0.95 0.008 85);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.93 0.02 60);
-  --accent-foreground: oklch(0.3 0.03 260);
-  --destructive: oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 85);
-  --border: oklch(0.9 0.01 85);
-  --input: oklch(0.9 0.01 85);
-  --ring: oklch(0.55 0.05 260);
+  --primary: #a6615f;
+  --primary-foreground: #f8f6f4;
+  --accent-hover: #965755;
+  --accent-tint: #f4ebeb;
 
-  /* Category palette — calm, distinct, studio-friendly */
-  --cat-root: oklch(0.35 0.08 280);
-  --cat-rooms: oklch(0.6 0.12 240);
-  --cat-schedule: oklch(0.6 0.13 30);
-  --cat-trade: oklch(0.62 0.11 50);
-  --cat-furniture: oklch(0.55 0.12 150);
-  --cat-kitchen: oklch(0.62 0.14 70);
-  --cat-logistics: oklch(0.58 0.1 200);
-  --cat-budget: oklch(0.55 0.13 130);
-  --cat-coordination: oklch(0.55 0.1 320);
-  --cat-data_model: oklch(0.45 0.08 260);
-  --cat-roster: oklch(0.58 0.12 350);
-  --cat-roadmap: oklch(0.5 0.1 180);
-  --cat-deferred: oklch(0.65 0.02 260);
-  --cat-field: oklch(0.7 0.02 260);
-  --cat-action: oklch(0.58 0.22 25);
+  --secondary: #f2efea;
+  --secondary-foreground: #1a1a1a;
+  --muted: #efeae6;
+  --muted-foreground: #606060;
+  --accent: #f4ebeb;
+  --accent-foreground: #1a1a1a;
+  --destructive: #a6615f;
+  --destructive-foreground: #f8f6f4;
+
+  --border: #e5e0dd;
+  --input: #e5e0dd;
+  --rule-soft: #ece7e3;
+  --ring: rgba(166, 97, 95, 0.35);
+
+  /* Status — muted clay / ochre / olive, never traffic-light */
+  --status-needs: #a6615f;
+  --status-inflight: #d9a65f;
+  --status-settled: #8ca65f;
+  --status-empty: #d9d9d9;
+
+  /* Warm low shadows */
+  --shadow-cell: 0 1px 2px rgba(38, 38, 38, 0.06);
+  --shadow-drawer: 0 8px 24px rgba(38, 38, 38, 0.14);
+
+  /* Legacy category tokens — kept for backward compat, not applied as chrome */
+  --cat-root: #585858;
+  --cat-rooms: #606060;
+  --cat-schedule: #606060;
+  --cat-trade: #606060;
+  --cat-furniture: #606060;
+  --cat-kitchen: #606060;
+  --cat-logistics: #606060;
+  --cat-budget: #606060;
+  --cat-coordination: #606060;
+  --cat-data_model: #606060;
+  --cat-roster: #606060;
+  --cat-roadmap: #606060;
+  --cat-deferred: #8c8c8c;
+  --cat-field: #8c8c8c;
+  --cat-action: #a6615f;
 }
 
 @layer base {
@@ -106,25 +133,58 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv01";
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3, .font-display {
-    font-family: var(--font-serif);
-    letter-spacing: -0.01em;
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: -0.005em;
   }
+  h1 { font-weight: 300; }
+  h2 { font-weight: 400; }
+  h3 { font-weight: 500; }
 }
 
-/* React Flow overrides for a softer look */
+@utility num-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@utility label-micro {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+@utility hairline-b {
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+@utility hairline-r {
+  border-right: 1px solid var(--rule-soft);
+}
+
+/* Matrix row/column crosshair hover using CSS :has */
+.matrix-table tbody tr:hover td,
+.matrix-table tbody tr:hover th {
+  background-color: color-mix(in oklab, var(--accent-tint) 55%, transparent);
+}
+
+/* React Flow overrides — softer */
 .react-flow__edge-path {
-  stroke: oklch(0.78 0.02 260);
-  stroke-width: 1.5;
+  stroke: #bfbfbf;
+  stroke-width: 1;
 }
 .react-flow__edge.selected .react-flow__edge-path,
 .react-flow__edge:focus .react-flow__edge-path {
-  stroke: var(--cat-root);
+  stroke: var(--primary);
 }
 .react-flow__attribution {
   background: transparent !important;
   font-size: 10px;
-  opacity: 0.5;
+  opacity: 0.4;
 }

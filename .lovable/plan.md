@@ -1,88 +1,104 @@
-# Plan — Relational Items Layer + Multi-View Navigation
 
-Extend the existing Project Map app with a relational data layer (`items` joining rooms × categories × vendors × people) and four views over it: Matrix (default), Schedule (per trade), Room, and the existing Mind Map. Add a derived dashboard. Keep `maps` / `map_nodes` intact.
+# M1 Pass A — Auth, Roles, and RLS Foundation
 
-## 1. Database migration (single idempotent migration)
+Goal: lock the app behind real authentication, introduce configurable roles with per-module rights and money visibility, and enforce all of it at the database layer. No new business modules. Existing data preserved.
 
-New tables in `public`, each with `GRANT SELECT/INSERT/UPDATE/DELETE TO anon, authenticated`, `GRANT ALL TO service_role`, RLS enabled, and permissive v1 policies matching `map_nodes`. `updated_at` triggers reuse the existing `set_updated_at()` function.
+## 1. Authentication
 
-- `rooms` — `name`, `sort_order numeric`, `active boolean`
-- `categories` — `key text unique`, `label`, `sort_order numeric`
-- `vendors` — `name`, `contact_name`, `contact_info`, `trade_account_no`, `account_status` (`trade_account_open` | `purchased_from`), `notes`, timestamps
-- `people` — `name`, `role`, `notes`
-- `items` — all fields from the spec, FKs to rooms/categories/vendors/people; indexes on `room_id`, `category_id`, `vendor_id`, `status`, `priority`, `delivery_date`; timestamps + trigger
+- Enable Supabase email+password (simplest, no SMTP dependency for magic links); email confirmations left ON.
+- Login screen already exists at `/auth`. Keep it; polish copy only.
+- Auth gate: the `_authenticated` layout already redirects to `/auth`. Move any remaining top-level routes under it. Root `/` stays as the Matrix inside `_authenticated`.
+- Remove anon access: revoke all grants on `public.*` from `anon` and drop any anon policies added earlier. Authenticated-only from now on.
 
-Seeding is idempotent (`INSERT … ON CONFLICT DO NOTHING` keyed on natural keys: `categories.key`, `rooms.name`, `vendors.name`, `people.name`):
-- 14 categories (incl. `drapery` separate from `upholstery`, plus `av`)
-- 17 rooms verbatim from plan; `Roof Deck` with `active=false`
-- ~24 vendors with correct `account_status` (Constella Tech AV + Renson = `trade_account_open`)
-- 8 people with roles
-- 3–5 example items (no money values) so Matrix renders non-empty
+## 2. Schema (one idempotent migration)
 
-Mind map seed updates run in the same migration, scoped to the existing seeded map:
-- Rename `Vestibule` → `Entry Vestibule`; keep `Foyer`; delete the "Vestibule vs Foyer" question node
-- Ensure `Dining Room / Living Room` node exists under Rooms
-- Rename `Walk-in Closets (Muretti)` → `Closets (Muretti)`
-- Replace "Standardize naming…" node with "Use plan room names verbatim"
-- Delete empty `New node` children under Furniture
-- Add `Drapery` and `AV` branches under `Schedules by Trade` with the listed children
-- Replace Electrical placeholder children with the real list
-- Populate `Roof Deck` under Deferred with the listed children
+New tables:
 
-## 2. Data layer
+- `public.roles`
+  - `id uuid pk`, `key text unique`, `label text`, `is_system boolean`, `module_rights jsonb`, `money_visibility text check in ('full','client_price','none')`, timestamps.
+- `public.profiles`
+  - `id uuid pk references auth.users on delete cascade`, `full_name text`, `role_id uuid references roles`, `person_id uuid references people`, timestamps.
 
-- `src/lib/itemsApi.ts` — CRUD for items, rooms, categories, vendors, people; a `loadAll()` that returns normalized maps for the views.
-- `src/lib/useItemsData.ts` — TanStack Query hooks with optimistic updates mirroring the existing `useMapData` patterns.
-- Keep the existing map API untouched.
+Also:
+- `updated_at` triggers on both (reuse `set_updated_at`).
+- Trigger on `auth.users` insert → insert into `public.profiles` with `role_id = null`, plus first-owner bootstrap: if no profile currently has the `owner` role, assign the new user `owner`. (Also matches `g@gianaallendesign.com` explicitly as a belt-and-suspenders rule.)
+- Grants: `authenticated` gets SELECT/INSERT/UPDATE/DELETE on `profiles` and SELECT on `roles`; role writes gated by policy. `service_role` full.
 
-## 3. Navigation shell
+## 3. Seed system roles (ON CONFLICT (key) DO UPDATE)
 
-Replace the current single-route shell with a top-level view switcher (TanStack Router child routes under `/`):
-- `/` → Matrix (default landing)
-- `/schedule/$categoryKey`
-- `/room/$roomId`
-- `/map` → existing Mind Map + Outline split-screen (move the current page here)
-- `/dashboard` → derived cards
+Module keys used: `matrix, room, schedule, item, budget, cashflow, logistics, library, inventory, lookbook, intake, ai, scheduling, approvals, people_vendors, admin`.
 
-Top bar gets a segmented switcher: **Matrix · Schedule · Room · Map · Dashboard**, plus the existing search/export.
+| key | modules | money |
+|---|---|---|
+| owner | all `edit` | full |
+| super_admin | all `edit` | full |
+| admin | all `edit` except `admin` config maybe `edit` | full |
+| team | matrix/room/schedule/item/logistics/library/inventory/lookbook/intake/ai/scheduling/approvals/people_vendors `edit`; budget/cashflow `view`; admin `none` | full |
+| contractor | room/schedule/item `view`; rest `none` | none |
+| client | dashboard(matrix `view`)/lookbook/approvals `view`; rest `none` | client_price |
+| client_assistant | lookbook/approvals `view`; budget/cashflow `view`; rest `none` | client_price |
 
-## 4. Views
+All `is_system = true`.
 
-**Matrix (default)**: rows = active rooms, columns = categories. Each cell shows item count + status roll-up dot (green=all delivered, amber=any ordered, red=any `on_hold`/`to_order`, grey=empty) + ASAP flag. Cell click opens a side panel listing those items with inline create.
+## 4. RLS helpers and policies
 
-**Schedule (per trade)**: category picker → table of every item in that category across rooms. Columns: room, title, vendor, sku, qty, status, lead time, delivery date, installer. Sortable, filterable.
+Helpers (SECURITY DEFINER, STABLE, `search_path=public`):
+- `current_role_key() returns text`
+- `current_money_visibility() returns text`
+- `has_module_right(module text, level text) returns boolean` — treats `edit` ⊇ `view`.
 
-**Room**: room picker → all items grouped by category. Same row component as Schedule.
+Enable RLS on: `roles, profiles, rooms, categories, vendors, people, items, maps, map_nodes`.
 
-**Item detail editor**: drawer (reuse `NodeDrawer` styling) with all item fields, vendor/person comboboxes (searchable, "create new" inline), status/priority/logistics_location selects, money fields, dates. Autosave on blur.
+Policy posture (per table, `TO authenticated`):
+- `roles`: SELECT all authenticated. INSERT/UPDATE/DELETE only when `has_module_right('admin','edit')`. Block DELETE when `is_system`.
+- `profiles`: user SELECT/UPDATE own row; admin/owner/super_admin SELECT/UPDATE all (role assignment).
+- Data tables (`rooms, categories, vendors, people, items, maps, map_nodes`): map each to a module — items→`item`, rooms→`room`, categories→`schedule`, vendors/people→`people_vendors`, maps/map_nodes→`matrix`. SELECT requires `view`; INSERT/UPDATE/DELETE require `edit`.
 
-**Mind Map**: unchanged, moved to `/map`.
+## 5. Money-column hiding (column-level enforcement)
 
-## 5. Dashboard cards (derived, read-only)
+Postgres RLS is row-level. To hide `gad_cost`/`client_price` from restricted roles at the data layer:
 
-All computed client-side from the items/vendors/people query:
-- **To-Do**: `status in ('to_spec','to_order')`, grouped by room, sorted by `delivery_date asc nulls last`
-- **ASAP**: `priority='asap'`
-- **People & Vendors**: two lists; vendors badge `Trade account open` vs `Purchased from` so unused accounts stay visible
-- **Budget cashflow**: forward forecast grouped by month of `delivery_date`. Per month show: client owes GAD (`!client_paid_gad`), GAD owes vendor (`!gad_paid_vendor`), balances due on delivery. No single total.
-- **Logistics board**: kanban-style columns by `logistics_location` (France ship / Mississippi truck / Mississippi warehouse / NY / N/A)
+- Create SQL view `public.items_visible` as `SELECT` of `items` where money columns are wrapped:
+  - `CASE current_money_visibility() WHEN 'full' THEN gad_cost ELSE NULL END AS gad_cost`
+  - `CASE current_money_visibility() WHEN 'none' THEN NULL ELSE client_price END AS client_price`
+- View is `security_invoker = true` so underlying RLS still applies.
+- REVOKE all on `public.items` from `authenticated`; GRANT only through role-gated policies AND additionally REVOKE SELECT on the money columns from `authenticated` at the table level using column privileges (`REVOKE SELECT (gad_cost, client_price) ON public.items FROM authenticated; GRANT SELECT (gad_cost, client_price) ON public.items TO authenticated` — no, we cannot do conditional GRANT). Instead: keep table SELECT column grants scoped to non-money columns for `authenticated`, and require reads of money to go through `items_visible`. Writes to money columns gated by a policy that checks `current_money_visibility() = 'full'` in the WITH CHECK.
+- Client-side `itemsApi` reads switch from `from('items')` to `from('items_visible')` for lists; writes still target `items` with the money-write policy enforcing full visibility.
 
-## 6. Build order
+This means even a direct PostgREST query cannot return `gad_cost`/`client_price` to a role that lacks column privileges; the view is the only supported read path and nulls values per role.
 
-1. Migration (schema + seeds + mind map updates) — approval gate
-2. Items API + hooks
-3. Navigation shell + route files
-4. Matrix view + cell drill-down panel
-5. Item detail drawer with vendor/person pickers
-6. Schedule + Room views (share row component)
-7. Dashboard cards
-8. Polish: empty states, status-dot legend, ASAP badges
+## 6. Admin screen (minimal)
+
+New route `/_authenticated/admin` (visible only when `has_module_right('admin','edit')`; hidden in `AppShell` nav otherwise):
+
+- Roles editor: list roles; edit `module_rights` (grid of module × [none/view/edit]) and `money_visibility`; create custom role; delete disabled when `is_system`.
+- People/invite panel: list `profiles` with role assignment dropdown; "Invite by email" using `supabase.auth.admin.inviteUserByEmail` via a `createServerFn` guarded by admin check, with role pre-attached (stored in a pending mapping keyed by email, applied on profile creation trigger).
+- Preview-as-role: a client-side impersonation toggle that overrides the fetched `module_rights`/`money_visibility` in memory for UI gating and refetches through `items_visible` using an admin-only server fn that runs the view under a chosen role (SET LOCAL role via SECURITY DEFINER helper that swaps `current_role_key()`); read-only mode blocks writes in the UI. Clearly labeled as preview; disabled by default.
+
+## 7. Client wiring
+
+- `AppShell`: show role label; hide nav entries whose module the current role lacks `view` on (matrix/schedule/room/map/dashboard/admin).
+- Add `useCurrentProfile()` hook returning `{ profile, role, moduleRights, moneyVisibility }` via TanStack Query.
+- `ItemDrawer` and matrix cells: hide money inputs/badges when `moneyVisibility !== 'full'`; show client price only when `client_price`.
+- Existing item queries switched to `items_visible`.
+
+## 8. Verification output after migration runs
+
+The migration's final `RAISE NOTICE`s will confirm:
+- anon grants revoked (checked against `information_schema.role_table_grants`);
+- RLS enabled on all 9 tables listed;
+- 7 system roles present;
+- profile auto-creation trigger installed;
+- first-owner bootstrap logic present;
+- money-column enforcement summary: table-level column REVOKE + role-aware view `items_visible` + write policy — no path exposes money to non-`full` roles.
+- Any table without a policy is listed (should be empty).
+
+## Deferred to pass B (explicit)
+
+Products, Payments, Budget, Cashflow, Phases, Approvals, Documents, Media, Intake modules — no schema, no UI here.
 
 ## Technical notes
 
-- v1 RLS stays permissive (anon CRUD) per the existing posture; explicit "no real financial data until auth" stays the rule — example items contain no prices.
-- `numeric` `sort_order` everywhere for midpoint inserts without renumbering.
-- All money fields nullable; the dashboard treats null as "unknown", not zero.
-- Vendor & person creation reachable from any item picker so data entry never blocks on navigation.
-- The mind map seed updates are written as targeted `UPDATE`/`DELETE`/`INSERT … WHERE NOT EXISTS` statements keyed on `(map_id, parent title path, title)` so re-running the migration is safe.
-- No realtime in v1 (consistent with current optimistic-UI choice).
+- One migration file adds tables, triggers, helpers, RLS, policies, view, grants, revokes, and seed. Fully idempotent via `IF NOT EXISTS`, `ON CONFLICT`, and `CREATE OR REPLACE`.
+- Server-side admin ops (`inviteUserByEmail`, preview-as-role) go through `createServerFn` + `requireSupabaseAuth`, verifying `has_role`/`admin` module right before touching `supabaseAdmin` (loaded via `await import`).
+- No changes to existing rooms/categories/vendors/people/items/maps/map_nodes data.

@@ -6,6 +6,7 @@ import { useCreateItem, useDeleteItem } from "@/lib/useItemsData";
 import type { Category, Item, LoadedData, Room } from "@/lib/itemsApi";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;
@@ -50,46 +51,52 @@ export function CellPanel({ open, onOpenChange, room, category, items, data, onE
               No items yet for this cell.
             </div>
           )}
-          {items.map((it) => (
-            <div
-              key={it.id}
-              className="flex items-center gap-2 rounded-md border bg-card p-3 hover:bg-accent/40"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <button
-                    className="truncate text-left font-medium hover:underline"
-                    onClick={() => onEdit(it)}
-                  >
-                    {it.title}
-                  </button>
-                  {it.priority === "asap" && (
-                    <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-rose-800">
-                      ASAP
-                    </span>
-                  )}
-                </div>
-                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                  <StatusBadge status={it.status} />
-                  {it.vendor_id && <span>{data.vendorById[it.vendor_id]?.name}</span>}
-                  {it.delivery_date && <span>· {it.delivery_date}</span>}
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => onEdit(it)}>
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive"
-                onClick={() => {
-                  if (confirm(`Delete "${it.title}"?`)) del.mutate(it.id);
-                }}
+          {items.map((it) => {
+            const isOpt = it.status === "option";
+            return (
+              <div
+                key={it.id}
+                className={cn(
+                  "flex items-center gap-2 rounded-[4px] border p-3 transition-colors hover:bg-[color:var(--accent-tint)]",
+                  isOpt
+                    ? "border-dashed border-[color:var(--rule-soft)] bg-transparent italic text-muted-foreground"
+                    : "border-[color:var(--rule-soft)] bg-card",
+                )}
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="truncate text-left text-[14px] font-normal hover:underline"
+                      onClick={() => onEdit(it)}
+                    >
+                      {it.title}
+                    </button>
+                    {it.priority === "asap" && (
+                      <span className="label-micro !text-[9px] text-[color:var(--primary)]">ASAP</span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                    <StatusBadge status={it.status} />
+                    {it.vendor_id && <span>{data.vendorById[it.vendor_id]?.name}</span>}
+                    {it.delivery_date && <span className="num-tabular">· {it.delivery_date}</span>}
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => onEdit(it)}>
+                  <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-[color:var(--primary)]"
+                  onClick={() => {
+                    if (confirm(`Delete "${it.title}"?`)) del.mutate(it.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
         <div className="mt-6 flex gap-2 border-t pt-4">

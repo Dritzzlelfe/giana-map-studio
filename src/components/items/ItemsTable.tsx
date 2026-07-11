@@ -73,7 +73,7 @@ export function ItemsTable({
                     {it.title}
                   </button>
                   {it.priority === "asap" && (
-                    <span className="ml-2 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-rose-800">
+                    <span className="label-micro ml-2 !text-[9px] text-[color:var(--primary)]">
                       ASAP
                     </span>
                   )}

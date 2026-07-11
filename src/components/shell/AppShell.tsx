@@ -68,16 +68,16 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
   });
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-paper">
       <Toaster richColors position="top-right" />
-      <header className="shrink-0 border-b bg-card/60 backdrop-blur">
-        <div className="flex flex-wrap items-center gap-4 px-5 py-3">
+      <header className="shrink-0 border-b border-[color:var(--rule-soft)] bg-paper">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-6 px-8 py-4">
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-semibold tracking-tight">
-              Giana Allen Design <span className="text-muted-foreground">— Project Map</span>
+            <h1 className="font-display text-[15px] font-normal tracking-[0.14em] uppercase">
+              Giana Allen <span className="text-muted-foreground">Design</span>
             </h1>
           </div>
-          <nav className="ml-4 flex items-center gap-1 rounded-md border bg-card p-1">
+          <nav className="ml-2 flex items-center gap-1">
             {visibleNav.map((n) => {
               const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
               const Icon = n.icon;
@@ -86,13 +86,13 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
                   key={n.to}
                   to={n.to}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition-colors",
+                    "label-micro relative inline-flex items-center gap-1.5 px-3 py-2 transition-colors",
                     active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      ? "text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-[2px] after:bg-[color:var(--primary)]"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
                   {n.label}
                 </Link>
               );
@@ -101,11 +101,11 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
           <div className="flex-1" />
           {right}
           {previewKey && (
-            <div className="flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-2 py-1 text-xs text-amber-900">
-              <Eye className="h-3.5 w-3.5" />
-              Previewing as <strong>{previewRole?.label ?? previewKey}</strong>
+            <div className="label-micro flex items-center gap-2 border border-[color:var(--primary)]/40 bg-[color:var(--accent-tint)] px-2 py-1 text-[color:var(--primary)]">
+              <Eye className="h-3 w-3" strokeWidth={1.5} />
+              Previewing as <strong className="font-semibold">{previewRole?.label ?? previewKey}</strong>
               <button
-                className="ml-1 rounded px-1 text-amber-900 hover:bg-amber-100"
+                className="ml-1 px-1 hover:text-foreground"
                 onClick={() => setPreviewKey(null)}
                 title="Exit preview"
               >
@@ -114,15 +114,15 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
             </div>
           )}
           {profile?.role && (
-            <span className="text-xs text-muted-foreground">
-              {profile.email} · {profile.role.label}
+            <span className="text-[11px] text-muted-foreground">
+              {profile.email} · <span className="text-foreground">{profile.role.label}</span>
             </span>
           )}
           {!profile?.role && profile && (
-            <span className="text-xs text-amber-700">No role assigned</span>
+            <span className="text-[11px] text-[color:var(--primary)]">No role assigned</span>
           )}
           <Button variant="ghost" size="sm" onClick={handleSignOut} title="Sign out">
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
           </Button>
         </div>
       </header>

@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
 import { rollupStatus, countOptions, type Category, type Item, type Room } from "@/lib/itemsApi";
@@ -23,6 +22,7 @@ function MatrixPage() {
   const { data, isLoading, error } = useItemsData();
   const [cell, setCell] = useState<{ room: Room; category: Category } | null>(null);
   const [editing, setEditing] = useState<Item | null>(null);
+  const [hideEmptyCols, setHideEmptyCols] = useState(false);
 
   const grouped = useMemo(() => {
     const m = new Map<string, Item[]>();
@@ -37,79 +37,145 @@ function MatrixPage() {
     return m;
   }, [data]);
 
+  const activeRooms = useMemo(() => data?.rooms.filter((r) => r.active) ?? [], [data]);
+
+  const categories = useMemo(() => {
+    if (!data) return [];
+    if (!hideEmptyCols) return data.categories;
+    return data.categories.filter((c) =>
+      activeRooms.some((r) => (grouped.get(`${r.id}::${c.id}`) ?? []).length > 0),
+    );
+  }, [data, hideEmptyCols, activeRooms, grouped]);
+
+  const colTotals = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const c of categories) {
+      let n = 0;
+      for (const r of activeRooms) n += (grouped.get(`${r.id}::${c.id}`) ?? []).length;
+      m.set(c.id, n);
+    }
+    return m;
+  }, [categories, activeRooms, grouped]);
+
   return (
     <AppShell>
       {isLoading && (
-        <div className="flex flex-1 items-center justify-center text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+          Loading…
         </div>
       )}
       {error && <div className="p-6 text-destructive">{(error as Error).message}</div>}
       {data && (
-        <div className="flex-1 overflow-auto p-5">
-          <div className="mb-3 flex items-center gap-4 text-xs text-muted-foreground">
-            <Legend />
-          </div>
-          <div className="rounded-md border bg-card">
-            <div className="overflow-auto">
-              <table className="w-full border-separate border-spacing-0 text-sm">
-                <thead className="sticky top-0 z-10 bg-card">
+        <div className="flex-1 overflow-hidden bg-paper">
+          <div className="mx-auto flex h-full max-w-[1600px] flex-col px-8 pt-8">
+            <header className="pb-5">
+              <div className="label-micro">Project</div>
+              <h1 className="mt-1 text-3xl font-light tracking-tight">
+                {data.rooms[0] ? "Candida Smith" : "Project"}
+              </h1>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Rooms × trades — the full plan at a glance.
+              </div>
+            </header>
+
+            <div className="flex items-end justify-between border-b border-[color:var(--rule-soft)] pb-3">
+              <Legend />
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={hideEmptyCols}
+                  onChange={(e) => setHideEmptyCols(e.target.checked)}
+                  className="h-3 w-3 accent-[color:var(--primary)]"
+                />
+                Hide empty trades
+              </label>
+            </div>
+
+            <div className="mt-0 flex-1 overflow-auto">
+              <table className="matrix-table w-full border-separate border-spacing-0 text-sm">
+                <thead className="sticky top-0 z-10 bg-paper">
                   <tr>
-                    <th className="sticky left-0 z-20 border-b border-r bg-card px-3 py-2 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      Room
+                    <th className="sticky left-0 z-20 bg-paper px-4 py-3 text-left align-bottom hairline-b hairline-r">
+                      <div className="label-micro">Room</div>
                     </th>
-                    {data.categories.map((c) => (
+                    {categories.map((c) => (
                       <th
                         key={c.id}
-                        className="border-b px-3 py-2 text-left text-xs uppercase tracking-wide text-muted-foreground"
+                        className="min-w-[92px] bg-paper px-3 py-3 text-left align-bottom hairline-b"
                       >
                         <Link
                           to="/schedule/$categoryKey"
                           params={{ categoryKey: c.key }}
-                          className="hover:underline"
+                          className="label-micro hover:text-foreground"
                         >
                           {c.label}
                         </Link>
+                        <div className="mt-1 num-tabular text-[11px] font-light text-muted-foreground">
+                          {colTotals.get(c.id) || ""}
+                        </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {data.rooms
-                    .filter((r) => r.active)
-                    .map((room) => (
-                      <tr key={room.id}>
-                        <th className="sticky left-0 z-10 border-b border-r bg-card px-3 py-2 text-left font-medium">
-                          <Link to="/room/$roomId" params={{ roomId: room.id }} className="hover:underline">
-                            {room.name}
+                  {activeRooms.map((room) => {
+                    const rowTotal = categories.reduce(
+                      (n, c) => n + (grouped.get(`${room.id}::${c.id}`) ?? []).length,
+                      0,
+                    );
+                    return (
+                      <tr key={room.id} className="group">
+                        <th className="sticky left-0 z-10 bg-paper px-4 py-4 text-left align-middle hairline-b hairline-r">
+                          <Link
+                            to="/room/$roomId"
+                            params={{ roomId: room.id }}
+                            className="flex items-baseline gap-3 hover:text-foreground"
+                          >
+                            <span className="text-[15px] font-normal tracking-tight">{room.name}</span>
+                            <span className="num-tabular text-[11px] font-light text-muted-foreground">
+                              {rowTotal || ""}
+                            </span>
                           </Link>
                         </th>
-                        {data.categories.map((c) => {
+                        {categories.map((c) => {
                           const items = grouped.get(`${room.id}::${c.id}`) ?? [];
                           const roll = rollupStatus(items);
                           const opts = countOptions(items);
                           const committed = items.length - opts;
                           const asap = items.some((i) => i.priority === "asap" && i.status !== "option");
+                          const selected =
+                            cell?.room.id === room.id && cell?.category.id === c.id;
+                          const isEmpty = items.length === 0;
                           return (
-                            <td key={c.id} className="border-b p-1">
+                            <td key={c.id} className="hairline-b p-0 align-middle">
                               <button
                                 onClick={() => setCell({ room, category: c })}
                                 className={cn(
-                                  "group flex h-full w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left transition-colors",
-                                  items.length > 0
-                                    ? "hover:bg-accent/60"
-                                    : "text-muted-foreground hover:bg-accent/40",
+                                  "group/cell relative flex h-[56px] w-full items-center justify-between gap-2 px-3 text-left transition-colors",
+                                  selected
+                                    ? "bg-[color:var(--accent-tint)] ring-1 ring-inset ring-[color:var(--primary)]"
+                                    : "hover:bg-[color:var(--accent-tint)]",
                                 )}
                               >
-                                <span className="flex items-center gap-1.5">
-                                  <StatusDot roll={roll} />
-                                  <span className="text-sm">{committed || (items.length ? "" : "+")}</span>
-                                  {opts > 0 && (
-                                    <span className="text-[10px] text-muted-foreground">+{opts} opt</span>
-                                  )}
-                                </span>
+                                {isEmpty ? (
+                                  <span className="text-[13px] font-light text-transparent transition-colors group-hover/cell:text-muted-foreground">
+                                    +
+                                  </span>
+                                ) : (
+                                  <span className="flex items-baseline gap-2">
+                                    <StatusDot roll={roll} className="translate-y-[-2px]" />
+                                    <span className="num-tabular text-[15px] font-normal text-foreground">
+                                      {committed || ""}
+                                    </span>
+                                    {opts > 0 && (
+                                      <span className="num-tabular text-[10.5px] text-muted-foreground">
+                                        +{opts} opt
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
                                 {asap && (
-                                  <span className="rounded bg-rose-100 px-1 py-0.5 text-[9px] font-semibold uppercase text-rose-800">
+                                  <span className="label-micro !text-[9px] text-[color:var(--primary)]">
                                     ASAP
                                   </span>
                                 )}
@@ -118,7 +184,8 @@ function MatrixPage() {
                           );
                         })}
                       </tr>
-                    ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -155,11 +222,11 @@ function MatrixPage() {
 
 function Legend() {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <span className="flex items-center gap-1.5"><StatusDot roll="all_delivered" /> All delivered</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="in_motion" /> Ordered</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="needs_action" /> To spec / order / hold</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="empty" /> Empty</span>
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+      <span className="flex items-center gap-1.5"><StatusDot roll="all_delivered" /> settled</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="in_motion" /> in flight</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="needs_action" /> needs action</span>
+      <span className="flex items-center gap-1.5"><StatusDot roll="empty" /> empty</span>
     </div>
   );
 }

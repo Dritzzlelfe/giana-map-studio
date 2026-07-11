@@ -113,17 +113,17 @@ export async function loadAll(): Promise<LoadedData> {
   };
 }
 
-export async function createItem(patch: Partial<Item> & { title: string }): Promise<Partial<Item> & { id: string }> {
+export async function createItem(patch: Partial<Item> & { title: string }): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
     .insert(patch)
     .select(ITEM_WRITE_RETURN_COLS)
     .single();
   if (error) throw error;
-  return data as Partial<Item> & { id: string };
+  return { gad_cost: null, client_price: null, balance_due_on_delivery: null, ...(data as object) } as Item;
 }
 
-export async function updateItem(id: string, patch: Partial<Item>): Promise<Partial<Item> & { id: string }> {
+export async function updateItem(id: string, patch: Partial<Item>): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
     .update(patch)
@@ -131,7 +131,7 @@ export async function updateItem(id: string, patch: Partial<Item>): Promise<Part
     .select(ITEM_WRITE_RETURN_COLS)
     .single();
   if (error) throw error;
-  return data as Partial<Item> & { id: string };
+  return { gad_cost: null, client_price: null, balance_due_on_delivery: null, ...(data as object) } as Item;
 }
 
 export async function deleteItem(id: string): Promise<void> {

@@ -16,6 +16,7 @@ import {
 import { useCreatePerson, useCreateVendor, useDeleteItem, useUpdateItem } from "@/lib/useItemsData";
 import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   item: Item | null;

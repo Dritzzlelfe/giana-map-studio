@@ -146,6 +146,7 @@ function RolesEditor() {
         }).eq("id", r.id);
         if (error) throw error;
       } else {
+        if (!r.key || !r.label) throw new Error("Key and label required");
         const { error } = await supabase.from("roles").insert({
           key: r.key,
           label: r.label,

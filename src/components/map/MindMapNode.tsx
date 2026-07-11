@@ -80,7 +80,11 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
         data.dimmed && "opacity-30",
         data.highlighted && "ring-2 ring-amber-400 border-amber-400/40",
       )}
-      style={data.isRoot ? { background: `linear-gradient(135deg, ${color} 0%, oklch(0.28 0.06 280) 100%)` } : undefined}
+      style={
+        data.isRoot
+          ? { background: `linear-gradient(135deg, ${color} 0%, oklch(0.28 0.06 280) 100%)` }
+          : undefined
+      }
       onClick={() => data.onSelect(data.id)}
       onDoubleClick={(e) => {
         e.stopPropagation();
@@ -136,7 +140,9 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
             <div
               className={cn(
                 "leading-snug cursor-text",
-                data.isRoot ? "font-display text-lg font-semibold text-white" : "text-sm font-medium",
+                data.isRoot
+                  ? "font-display text-lg font-semibold text-white"
+                  : "text-sm font-medium",
               )}
             >
               {data.title}
@@ -153,7 +159,9 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
             type="button"
             className={cn(
               "shrink-0 rounded-md p-0.5 transition-colors",
-              data.isRoot ? "text-white/80 hover:bg-white/10" : "text-muted-foreground hover:bg-muted",
+              data.isRoot
+                ? "text-white/80 hover:bg-white/10"
+                : "text-muted-foreground hover:bg-muted",
             )}
             onClick={(e) => {
               e.stopPropagation();
@@ -161,7 +169,11 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
             }}
             aria-label={data.collapsed ? "Expand" : "Collapse"}
           >
-            {data.collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {data.collapsed ? (
+              <ChevronRight className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
           </button>
         )}
       </div>
@@ -210,4 +222,3 @@ export function MindMapNode({ data, selected }: NodeProps<MindNodeData>) {
     </div>
   );
 }
-

@@ -37,7 +37,10 @@ type Props = {
 
 const nodeTypes = { mind: MindMapNode };
 
-function computeDagreLayout(visible: MapNode[], rootId: string | null): Record<string, { x: number; y: number }> {
+function computeDagreLayout(
+  visible: MapNode[],
+  rootId: string | null,
+): Record<string, { x: number; y: number }> {
   const g = new dagre.graphlib.Graph();
   g.setGraph({ rankdir: "LR", nodesep: 22, ranksep: 80, marginx: 24, marginy: 24 });
   g.setDefaultEdgeLabel(() => ({}));
@@ -147,7 +150,20 @@ function InnerFlow(props: Props) {
       }
     }
     return { nodes: flowNodes, edges: flowEdges };
-  }, [data, selectedId, editingId, searchMatches, searchActive, props.onSelect, props.onAddChild, props.onEdit, props.onDelete, props.onToggleCollapse, props.onCommitTitle, props.onEditingChange]);
+  }, [
+    data,
+    selectedId,
+    editingId,
+    searchMatches,
+    searchActive,
+    props.onSelect,
+    props.onAddChild,
+    props.onEdit,
+    props.onDelete,
+    props.onToggleCollapse,
+    props.onCommitTitle,
+    props.onEditingChange,
+  ]);
 
   useEffect(() => {
     if (didFit.current) return;
@@ -198,17 +214,24 @@ function InnerFlow(props: Props) {
       panOnScroll
       selectionOnDrag
       onNodeDragStop={onNodeDragStop}
-      onPaneClick={() => { /* keep selection unless explicitly cleared elsewhere */ }}
+      onPaneClick={() => {
+        /* keep selection unless explicitly cleared elsewhere */
+      }}
       onDoubleClick={(e) => {
         // Only fire when the double-click target is the pane (not a node).
         const target = e.target as HTMLElement;
-        if (target.closest('.react-flow__node')) return;
+        if (target.closest(".react-flow__node")) return;
         onPaneDoubleClick(e);
       }}
     >
       <Background gap={24} size={1} color="oklch(0.85 0.01 85)" />
       <Controls showInteractive={false} className="!shadow-sm" />
-      <MiniMap pannable zoomable className="!bg-card !border !border-border" nodeColor={() => "oklch(0.7 0.05 260)"} />
+      <MiniMap
+        pannable
+        zoomable
+        className="!bg-card !border !border-border"
+        nodeColor={() => "oklch(0.7 0.05 260)"}
+      />
     </ReactFlow>
   );
 }

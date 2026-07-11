@@ -16,13 +16,7 @@ import { OutlineView } from "@/components/map/OutlineView";
 import { NodeDrawer } from "@/components/map/NodeDrawer";
 import { DeleteNodeDialog } from "@/components/map/DeleteNodeDialog";
 import { CategoryLegend } from "@/components/map/CategoryLegend";
-import {
-  useMap,
-  useAddChild,
-  useAddSibling,
-  useUpdateNode,
-  useDeleteNode,
-} from "@/lib/useMapData";
+import { useMap, useAddChild, useAddSibling, useUpdateNode, useDeleteNode } from "@/lib/useMapData";
 import { descendantCount, type MapNode } from "@/lib/mapApi";
 import { treeToJson, treeToMarkdown, downloadText } from "@/lib/exportMap";
 import { cn } from "@/lib/utils";
@@ -32,9 +26,15 @@ export const Route = createFileRoute("/_authenticated/map")({
   head: () => ({
     meta: [
       { title: "Giana Allen Design — Project Map" },
-      { name: "description", content: "Visual functional map of the GAD interior design project management tool." },
+      {
+        name: "description",
+        content: "Visual functional map of the GAD interior design project management tool.",
+      },
       { property: "og:title", content: "Giana Allen Design — Project Map" },
-      { property: "og:description", content: "Visual functional map of the GAD interior design project management tool." },
+      {
+        property: "og:description",
+        content: "Visual functional map of the GAD interior design project management tool.",
+      },
     ],
   }),
   component: Index,
@@ -123,8 +123,9 @@ function Index() {
 
   const filterActive = search.trim().length > 0 || !!categoryFilter;
 
-  const selected: MapNode | null = selectedId && data ? data.byId[selectedId] ?? null : null;
-  const deleteNodeRow: MapNode | null = deleteTarget && data ? data.byId[deleteTarget] ?? null : null;
+  const selected: MapNode | null = selectedId && data ? (data.byId[selectedId] ?? null) : null;
+  const deleteNodeRow: MapNode | null =
+    deleteTarget && data ? (data.byId[deleteTarget] ?? null) : null;
   const deleteCount = data && deleteTarget ? descendantCount(data, deleteTarget) : 0;
 
   const handleSelect = (id: string) => setSelectedId(id);
@@ -138,7 +139,12 @@ function Index() {
     setEditingId(n.id);
   };
   const handleAddChildAt = async (parentId: string | null, pos: { x: number; y: number }) => {
-    const n = await addChild.mutateAsync({ parentId, title: "New node", pos_x: pos.x, pos_y: pos.y });
+    const n = await addChild.mutateAsync({
+      parentId,
+      title: "New node",
+      pos_x: pos.x,
+      pos_y: pos.y,
+    });
     setSelectedId(n.id);
     setEditingId(n.id);
   };
@@ -311,7 +317,13 @@ function Index() {
                 onEditingChange={handleEditingChange}
               />
             </div>
-            <div className={cn("border-l bg-background overflow-auto", view === "map" && "hidden lg:block", "lg:w-[35%] lg:max-w-[420px] lg:min-w-[300px]")}>
+            <div
+              className={cn(
+                "border-l bg-background overflow-auto",
+                view === "map" && "hidden lg:block",
+                "lg:w-[35%] lg:max-w-[420px] lg:min-w-[300px]",
+              )}
+            >
               <OutlineView
                 data={data}
                 selectedId={selectedId}
@@ -331,7 +343,6 @@ function Index() {
           </>
         )}
       </div>
-
 
       <NodeDrawer
         node={selected}

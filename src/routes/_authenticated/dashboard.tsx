@@ -14,7 +14,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function fmtMoney(n: number | null | undefined) {
   if (n === null || n === undefined) return "—";
-  return n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString(undefined, {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 }
 function monthKey(d: string) {
   return d.slice(0, 7);
@@ -31,7 +35,10 @@ function DashboardPage() {
   const asap = useMemo(() => (data?.items ?? []).filter((i) => i.priority === "asap"), [data]);
 
   const cashflow = useMemo(() => {
-    const months = new Map<string, { client_owes: number; gad_owes: number; balance_due: number }>();
+    const months = new Map<
+      string,
+      { client_owes: number; gad_owes: number; balance_due: number }
+    >();
     for (const it of data?.items ?? []) {
       if (!it.delivery_date) continue;
       const k = monthKey(it.delivery_date);
@@ -69,7 +76,9 @@ function DashboardPage() {
             </Card>
             <Card title={`To-Do (${todo.length})`}>
               <ItemList
-                items={[...todo].sort((a, b) => (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"))}
+                items={[...todo].sort((a, b) =>
+                  (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"),
+                )}
                 data={data}
                 onEdit={setEditing}
               />
@@ -140,7 +149,8 @@ function DashboardPage() {
                   return (
                     <div key={loc.id} className="rounded border bg-muted/30 p-2">
                       <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        {loc.label} <span className="ml-1 text-muted-foreground/70">({items.length})</span>
+                        {loc.label}{" "}
+                        <span className="ml-1 text-muted-foreground/70">({items.length})</span>
                       </div>
                       <div className="space-y-1">
                         {items.map((it) => (
@@ -178,7 +188,15 @@ function DashboardPage() {
   );
 }
 
-function Card({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function Card({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={`rounded-md border bg-card p-4 ${className ?? ""}`}>
       <h2 className="mb-3 font-display text-base font-semibold">{title}</h2>
@@ -187,7 +205,15 @@ function Card({ title, children, className }: { title: string; children: React.R
   );
 }
 
-function ItemList({ items, data, onEdit }: { items: Item[]; data: LoadedData; onEdit: (i: Item) => void }) {
+function ItemList({
+  items,
+  data,
+  onEdit,
+}: {
+  items: Item[];
+  data: LoadedData;
+  onEdit: (i: Item) => void;
+}) {
   if (items.length === 0) return <p className="text-sm text-muted-foreground">Nothing here.</p>;
   return (
     <ul className="divide-y text-sm">

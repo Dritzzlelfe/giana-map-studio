@@ -13,8 +13,7 @@ export function installPreviewRoleFetch() {
   if (installed) return;
   if (typeof window === "undefined") return;
 
-  const supabaseUrl =
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+  const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
   if (!supabaseUrl) return;
 
   const originalFetch = window.fetch.bind(window);
@@ -22,18 +21,12 @@ export function installPreviewRoleFetch() {
   window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     try {
       const url =
-        typeof input === "string"
-          ? input
-          : input instanceof URL
-            ? input.toString()
-            : input.url;
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
       if (url.startsWith(supabaseUrl)) {
         const previewKey = window.sessionStorage.getItem(PREVIEW_KEY);
         if (previewKey) {
-          const headers = new Headers(
-            input instanceof Request ? input.headers : undefined,
-          );
+          const headers = new Headers(input instanceof Request ? input.headers : undefined);
           if (init?.headers) {
             new Headers(init.headers).forEach((v, k) => headers.set(k, v));
           }

@@ -131,7 +131,9 @@ function MatrixPage() {
                             params={{ roomId: room.id }}
                             className="flex items-baseline gap-3 hover:text-foreground"
                           >
-                            <span className="text-[15px] font-normal tracking-tight">{room.name}</span>
+                            <span className="text-[15px] font-normal tracking-tight">
+                              {room.name}
+                            </span>
                             <span className="num-tabular text-[11px] font-light text-muted-foreground">
                               {rowTotal || ""}
                             </span>
@@ -142,9 +144,10 @@ function MatrixPage() {
                           const roll = rollupStatus(items);
                           const opts = countOptions(items);
                           const committed = items.length - opts;
-                          const asap = items.some((i) => i.priority === "asap" && i.status !== "option");
-                          const selected =
-                            cell?.room.id === room.id && cell?.category.id === c.id;
+                          const asap = items.some(
+                            (i) => i.priority === "asap" && i.status !== "option",
+                          );
+                          const selected = cell?.room.id === room.id && cell?.category.id === c.id;
                           const isEmpty = items.length === 0;
                           return (
                             <td key={c.id} className="hairline-b p-0 align-middle">
@@ -202,7 +205,9 @@ function MatrixPage() {
             category={cell?.category ?? null}
             items={
               cell
-                ? data.items.filter((i) => i.room_id === cell.room.id && i.category_id === cell.category.id)
+                ? data.items.filter(
+                    (i) => i.room_id === cell.room.id && i.category_id === cell.category.id,
+                  )
                 : []
             }
             data={data}
@@ -223,10 +228,18 @@ function MatrixPage() {
 function Legend() {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
-      <span className="flex items-center gap-1.5"><StatusDot roll="all_delivered" /> settled</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="in_motion" /> in flight</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="needs_action" /> needs action</span>
-      <span className="flex items-center gap-1.5"><StatusDot roll="empty" /> empty</span>
+      <span className="flex items-center gap-1.5">
+        <StatusDot roll="all_delivered" /> settled
+      </span>
+      <span className="flex items-center gap-1.5">
+        <StatusDot roll="in_motion" /> in flight
+      </span>
+      <span className="flex items-center gap-1.5">
+        <StatusDot roll="needs_action" /> needs action
+      </span>
+      <span className="flex items-center gap-1.5">
+        <StatusDot roll="empty" /> empty
+      </span>
     </div>
   );
 }

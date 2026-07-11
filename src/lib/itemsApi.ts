@@ -84,7 +84,10 @@ export async function loadAll(): Promise<LoadedData> {
   const [r, c, v, p, i] = await Promise.all([
     // Exclude money column `target_amount` — authenticated has no SELECT on it;
     // it is exposed only through `room_targets_visible` with role-aware masking.
-    supabase.from("rooms").select("id, name, sort_order, active, created_at, updated_at, project_id").order("sort_order"),
+    supabase
+      .from("rooms")
+      .select("id, name, sort_order, active, created_at, updated_at, project_id")
+      .order("sort_order"),
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("vendors").select("*").order("name"),
     supabase.from("people").select("*").order("name"),
@@ -125,7 +128,12 @@ export async function createItem(patch: Partial<Item> & { title: string }): Prom
     .select(ITEM_WRITE_RETURN_COLS)
     .single();
   if (error) throw error;
-  return { gad_cost: null, client_price: null, balance_due_on_delivery: null, ...(data as object) } as Item;
+  return {
+    gad_cost: null,
+    client_price: null,
+    balance_due_on_delivery: null,
+    ...(data as object),
+  } as Item;
 }
 
 export async function updateItem(id: string, patch: Partial<Item>): Promise<Item> {
@@ -136,7 +144,12 @@ export async function updateItem(id: string, patch: Partial<Item>): Promise<Item
     .select(ITEM_WRITE_RETURN_COLS)
     .single();
   if (error) throw error;
-  return { gad_cost: null, client_price: null, balance_due_on_delivery: null, ...(data as object) } as Item;
+  return {
+    gad_cost: null,
+    client_price: null,
+    balance_due_on_delivery: null,
+    ...(data as object),
+  } as Item;
 }
 
 export async function deleteItem(id: string): Promise<void> {
@@ -151,7 +164,12 @@ export async function createVendor(patch: Partial<Vendor> & { name: string }): P
 }
 
 export async function updateVendor(id: string, patch: Partial<Vendor>): Promise<Vendor> {
-  const { data, error } = await supabase.from("vendors").update(patch).eq("id", id).select("*").single();
+  const { data, error } = await supabase
+    .from("vendors")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
   if (error) throw error;
   return data as Vendor;
 }
@@ -196,7 +214,11 @@ export function rollupStatus(items: Item[]): StatusRoll {
   const committed = items.filter((i) => i.status !== "option");
   if (committed.length === 0) return "empty";
   if (committed.every((i) => i.status === "delivered")) return "all_delivered";
-  if (committed.some((i) => i.status === "on_hold" || i.status === "to_order" || i.status === "to_spec"))
+  if (
+    committed.some(
+      (i) => i.status === "on_hold" || i.status === "to_order" || i.status === "to_spec",
+    )
+  )
     return "needs_action";
   return "in_motion";
 }

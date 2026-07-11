@@ -1,9 +1,21 @@
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CATEGORIES, STATUSES, PRIORITIES } from "@/lib/categories";
 import type { MapNode } from "@/lib/mapApi";
 
@@ -85,10 +97,14 @@ export function NodeDrawer({ node, open, onOpenChange, onPatch }: Props) {
                 value={selValue(node.category)}
                 onValueChange={(v) => onPatch({ category: parsedVal(v) })}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -99,11 +115,15 @@ export function NodeDrawer({ node, open, onOpenChange, onPatch }: Props) {
                 value={selValue(node.priority)}
                 onValueChange={(v) => onPatch({ priority: parsedVal(v) })}
               >
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>—</SelectItem>
                   {PRIORITIES.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -114,11 +134,15 @@ export function NodeDrawer({ node, open, onOpenChange, onPatch }: Props) {
                 value={selValue(node.status)}
                 onValueChange={(v) => onPatch({ status: parsedVal(v) })}
               >
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>—</SelectItem>
                   {STATUSES.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

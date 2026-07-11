@@ -137,7 +137,19 @@ export async function insertNode(input: {
 
 export async function updateNode(id: string, patch: Partial<MapNode>): Promise<MapNode> {
   const cleaned: Record<string, unknown> = {};
-  const keys = ["title", "description", "category", "status", "priority", "color", "sort_order", "collapsed", "parent_id", "pos_x", "pos_y"] as const;
+  const keys = [
+    "title",
+    "description",
+    "category",
+    "status",
+    "priority",
+    "color",
+    "sort_order",
+    "collapsed",
+    "parent_id",
+    "pos_x",
+    "pos_y",
+  ] as const;
   for (const k of keys) {
     const v = (patch as Record<string, unknown>)[k];
     if (v !== undefined) cleaned[k] = v;
@@ -153,11 +165,16 @@ export async function updateNode(id: string, patch: Partial<MapNode>): Promise<M
   return data as MapNode;
 }
 
-export async function updateNodePositions(updates: { id: string; pos_x: number; pos_y: number }[]): Promise<void> {
+export async function updateNodePositions(
+  updates: { id: string; pos_x: number; pos_y: number }[],
+): Promise<void> {
   if (updates.length === 0) return;
   await Promise.all(
     updates.map((u) =>
-      supabase.from("map_nodes").update({ pos_x: u.pos_x, pos_y: u.pos_y } as never).eq("id", u.id),
+      supabase
+        .from("map_nodes")
+        .update({ pos_x: u.pos_x, pos_y: u.pos_y } as never)
+        .eq("id", u.id),
     ),
   );
 }

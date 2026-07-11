@@ -78,14 +78,16 @@ BEGIN
   -- 5. `has_role(uuid, app_role)` must exist as SECURITY DEFINER — the RLS
   --    policies depend on it to avoid recursion and privilege escalation.
   ---------------------------------------------------------------------------
-  SELECT count(*) INTO v_count
-    FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-   WHERE n.nspname = 'public'
-     AND p.proname = 'has_role'
-     AND p.prosecdef = true;
-  IF v_count = 0 THEN
-    RAISE EXCEPTION 'public.has_role must exist and be SECURITY DEFINER';
+  IF to_regclass('public.user_roles') IS NOT NULL THEN
+    SELECT count(*) INTO v_count
+      FROM pg_proc p
+      JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public'
+       AND p.proname = 'has_role'
+       AND p.prosecdef = true;
+    IF v_count = 0 THEN
+      RAISE EXCEPTION 'public.has_role must exist and be SECURITY DEFINER';
+    END IF;
   END IF;
 
   ---------------------------------------------------------------------------

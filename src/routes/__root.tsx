@@ -125,12 +125,21 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    installPreviewRoleFetch();
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
-    return () => data.subscription.unsubscribe();
+    const onPreviewChange = () => {
+      router.invalidate();
+      queryClient.invalidateQueries();
+    };
+    window.addEventListener("gad:preview-role-change", onPreviewChange);
+    return () => {
+      data.subscription.unsubscribe();
+      window.removeEventListener("gad:preview-role-change", onPreviewChange);
+    };
   }, [router, queryClient]);
 
   return (

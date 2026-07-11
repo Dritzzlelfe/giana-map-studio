@@ -50,8 +50,10 @@ BEGIN
 
   ---------------------------------------------------------------------------
   -- 3. `anon` must NOT have SELECT on user_roles (privilege-escalation guard).
+  --    Skipped when the table doesn't exist in this project.
   ---------------------------------------------------------------------------
-  IF has_table_privilege('anon', 'public.user_roles', 'SELECT') THEN
+  IF to_regclass('public.user_roles') IS NOT NULL
+     AND has_table_privilege('anon', 'public.user_roles', 'SELECT') THEN
     RAISE EXCEPTION 'anon must not have SELECT on public.user_roles';
   END IF;
 

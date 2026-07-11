@@ -14,6 +14,7 @@ import {
   type LoadedData,
 } from "@/lib/itemsApi";
 import { useCreatePerson, useCreateVendor, useDeleteItem, useUpdateItem } from "@/lib/useItemsData";
+import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import { useState } from "react";
 
 type Props = {
@@ -34,6 +35,12 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
   const del = useDeleteItem();
   const createVendor = useCreateVendor();
   const createPerson = useCreatePerson();
+  const { data: profile } = useCurrentProfile();
+  const money = profile?.role?.money_visibility ?? "none";
+  const showGadCost = money === "full";
+  const showClientPrice = money === "full" || money === "client_price";
+  const showBalance = money === "full";
+  const canEditMoney = money === "full";
   const [newVendor, setNewVendor] = useState("");
   const [newPerson, setNewPerson] = useState("");
 
@@ -243,50 +250,66 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
             <Input value={item.storage_address ?? ""} onChange={(e) => patch({ storage_address: e.target.value || null })} />
           </Field>
 
-          <div className="col-span-2 mt-2 rounded-md border bg-muted/30 p-3">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Money — dated obligations
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="GAD cost">
-                <Input
-                  type="number"
-                  value={item.gad_cost ?? ""}
-                  onChange={(e) => patch({ gad_cost: e.target.value === "" ? null : Number(e.target.value) })}
-                />
-              </Field>
-              <Field label="Client price">
-                <Input
-                  type="number"
-                  value={item.client_price ?? ""}
-                  onChange={(e) => patch({ client_price: e.target.value === "" ? null : Number(e.target.value) })}
-                />
-              </Field>
-              <Field label="Balance due on delivery">
-                <Input
-                  type="number"
-                  value={item.balance_due_on_delivery ?? ""}
-                  onChange={(e) => patch({ balance_due_on_delivery: e.target.value === "" ? null : Number(e.target.value) })}
-                />
-              </Field>
-              <div className="flex flex-col justify-end gap-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <Switch
-                    checked={item.client_paid_gad}
-                    onCheckedChange={(c) => patch({ client_paid_gad: c })}
-                  />
-                  Client paid GAD
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <Switch
-                    checked={item.gad_paid_vendor}
-                    onCheckedChange={(c) => patch({ gad_paid_vendor: c })}
-                  />
-                  GAD paid vendor
-                </label>
+          {(showGadCost || showClientPrice || showBalance) ? (
+            <div className="col-span-2 mt-2 rounded-md border bg-muted/30 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Money — dated obligations
+                {!canEditMoney && (
+                  <span className="ml-2 font-normal normal-case text-muted-foreground">(read only)</span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {showGadCost && (
+                  <Field label="GAD cost">
+                    <Input
+                      type="number"
+                      disabled={!canEditMoney}
+                      value={item.gad_cost ?? ""}
+                      onChange={(e) => patch({ gad_cost: e.target.value === "" ? null : Number(e.target.value) })}
+                    />
+                  </Field>
+                )}
+                {showClientPrice && (
+                  <Field label="Client price">
+                    <Input
+                      type="number"
+                      disabled={!canEditMoney}
+                      value={item.client_price ?? ""}
+                      onChange={(e) => patch({ client_price: e.target.value === "" ? null : Number(e.target.value) })}
+                    />
+                  </Field>
+                )}
+                {showBalance && (
+                  <Field label="Balance due on delivery">
+                    <Input
+                      type="number"
+                      disabled={!canEditMoney}
+                      value={item.balance_due_on_delivery ?? ""}
+                      onChange={(e) => patch({ balance_due_on_delivery: e.target.value === "" ? null : Number(e.target.value) })}
+                    />
+                  </Field>
+                )}
+                {canEditMoney && (
+                  <div className="flex flex-col justify-end gap-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <Switch
+                        checked={item.client_paid_gad}
+                        onCheckedChange={(c) => patch({ client_paid_gad: c })}
+                      />
+                      Client paid GAD
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <Switch
+                        checked={item.gad_paid_vendor}
+                        onCheckedChange={(c) => patch({ gad_paid_vendor: c })}
+                      />
+                      GAD paid vendor
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         <div className="flex justify-between pt-2">

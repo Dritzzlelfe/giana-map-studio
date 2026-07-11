@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedScheduleIndexRouteImport } from './routes/_authenticated/schedule.index'
 import { Route as AuthenticatedRoomIndexRouteImport } from './routes/_authenticated/room.index'
 import { Route as AuthenticatedScheduleCategoryKeyRouteImport } from './routes/_authenticated/schedule.$categoryKey'
@@ -43,6 +44,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedScheduleIndexRoute =
   AuthenticatedScheduleIndexRouteImport.update({
     id: '/schedule/',
@@ -69,6 +75,7 @@ const AuthenticatedRoomRoomIdRoute = AuthenticatedRoomRoomIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/': typeof AuthenticatedIndexRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/admin'
     | '/dashboard'
     | '/map'
     | '/room/$roomId'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/admin'
     | '/dashboard'
     | '/map'
     | '/'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/map'
     | '/_authenticated/'
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/schedule/': {
       id: '/_authenticated/schedule/'
       path: '/schedule'
@@ -206,6 +225,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -216,6 +236,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,

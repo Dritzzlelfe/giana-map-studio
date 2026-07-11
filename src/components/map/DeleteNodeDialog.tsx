@@ -24,13 +24,16 @@ export function DeleteNodeDialog({ open, title, descendantCount, onCancel, onCon
         <AlertDialogHeader>
           <AlertDialogTitle className="font-display">Delete this node?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete <span className="font-semibold text-foreground">{title}</span>
+            This will permanently delete{" "}
+            <span className="font-semibold text-foreground">{title}</span>
             {descendantCount > 0 ? (
               <>
-                {" "}and its{" "}
+                {" "}
+                and its{" "}
                 <span className="font-semibold text-destructive">
                   {descendantCount} descendant{descendantCount === 1 ? "" : "s"}
-                </span>.
+                </span>
+                .
               </>
             ) : (
               <>.</>

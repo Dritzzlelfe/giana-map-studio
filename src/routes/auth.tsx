@@ -70,12 +70,8 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm rounded-lg border bg-card p-6 shadow-sm">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          Giana Allen Design
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Sign in to open the project map.
-        </p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">Giana Allen Design</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Sign in to open the project map.</p>
 
         <Button
           type="button"

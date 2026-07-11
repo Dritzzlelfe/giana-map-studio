@@ -55,18 +55,28 @@ function RoomPage() {
             </div>
           ) : (
             <>
-              <h2 className="mb-3 font-display text-lg font-semibold">{room.name} — all categories</h2>
+              <h2 className="mb-3 font-display text-lg font-semibold">
+                {room.name} — all categories
+              </h2>
               {data.categories.map((c) => {
                 const items = data.items
                   .filter((i) => i.room_id === room.id && i.category_id === c.id)
-                  .sort((a, b) => (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"));
+                  .sort((a, b) =>
+                    (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"),
+                  );
                 if (items.length === 0) return null;
                 return (
                   <div key={c.id} className="mb-6">
                     <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                       {c.label}
                     </h3>
-                    <ItemsTable items={items} data={data} onEdit={setEditing} showRoom={false} showCategory={false} />
+                    <ItemsTable
+                      items={items}
+                      data={data}
+                      onEdit={setEditing}
+                      showRoom={false}
+                      showCategory={false}
+                    />
                   </div>
                 );
               })}

@@ -3,9 +3,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ModuleKey =
-  | "matrix" | "room" | "schedule" | "item" | "budget" | "cashflow"
-  | "logistics" | "library" | "inventory" | "lookbook" | "intake"
-  | "ai" | "scheduling" | "approvals" | "people_vendors" | "admin";
+  | "matrix"
+  | "room"
+  | "schedule"
+  | "item"
+  | "budget"
+  | "cashflow"
+  | "logistics"
+  | "library"
+  | "inventory"
+  | "lookbook"
+  | "intake"
+  | "ai"
+  | "scheduling"
+  | "approvals"
+  | "people_vendors"
+  | "admin";
 
 export type RightLevel = "none" | "view" | "edit";
 export type MoneyVisibility = "full" | "client_price" | "none";
@@ -32,14 +45,16 @@ async function fetchCurrentProfile(): Promise<CurrentProfile | null> {
   if (!user) return null;
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role:roles(id, key, label, is_system, module_rights, money_visibility)")
+    .select(
+      "id, email, full_name, role:roles(id, key, label, is_system, module_rights, money_visibility)",
+    )
     .eq("id", user.id)
     .maybeSingle();
   if (error) throw error;
   const role = (data?.role ?? null) as CurrentProfile["role"];
   return {
     userId: user.id,
-    email: (data?.email ?? user.email) ?? null,
+    email: data?.email ?? user.email ?? null,
     full_name: data?.full_name ?? null,
     role,
   };

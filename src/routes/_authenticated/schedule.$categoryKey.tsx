@@ -59,8 +59,16 @@ function SchedulePage() {
             </div>
           ) : (
             <>
-              <h2 className="mb-3 font-display text-lg font-semibold">{category.label} — across all rooms</h2>
-              <ItemsTable items={items} data={data} onEdit={setEditing} showRoom showCategory={false} />
+              <h2 className="mb-3 font-display text-lg font-semibold">
+                {category.label} — across all rooms
+              </h2>
+              <ItemsTable
+                items={items}
+                data={data}
+                onEdit={setEditing}
+                showRoom
+                showCategory={false}
+              />
             </>
           )}
           <ItemDrawer

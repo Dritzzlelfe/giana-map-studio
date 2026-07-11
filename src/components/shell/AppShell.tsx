@@ -1,7 +1,16 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
-import { Grid3x3, ListTree, Home as HomeIcon, Network, LayoutDashboard, LogOut, Shield, Eye } from "lucide-react";
+import {
+  Grid3x3,
+  ListTree,
+  Home as HomeIcon,
+  Network,
+  LayoutDashboard,
+  LogOut,
+  Shield,
+  Eye,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +24,13 @@ import {
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-const NAV: { to: string; label: string; icon: typeof Grid3x3; exact: boolean; module: ModuleKey }[] = [
+const NAV: {
+  to: string;
+  label: string;
+  icon: typeof Grid3x3;
+  exact: boolean;
+  module: ModuleKey;
+}[] = [
   { to: "/", label: "Matrix", icon: Grid3x3, exact: true, module: "matrix" },
   { to: "/schedule", label: "Schedule", icon: ListTree, exact: false, module: "schedule" },
   { to: "/room", label: "Room", icon: HomeIcon, exact: false, module: "room" },
@@ -48,7 +63,8 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
   });
 
   const effectiveRights = useMemo(() => {
-    if (previewRole?.module_rights) return previewRole.module_rights as Record<string, "none" | "view" | "edit">;
+    if (previewRole?.module_rights)
+      return previewRole.module_rights as Record<string, "none" | "view" | "edit">;
     return (profile?.role?.module_rights ?? {}) as Record<string, "none" | "view" | "edit">;
   }, [previewRole, profile]);
 
@@ -103,7 +119,8 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
           {previewKey && (
             <div className="label-micro flex items-center gap-2 border border-[color:var(--primary)]/40 bg-[color:var(--accent-tint)] px-2 py-1 text-[color:var(--primary)]">
               <Eye className="h-3 w-3" strokeWidth={1.5} />
-              Previewing as <strong className="font-semibold">{previewRole?.label ?? previewKey}</strong>
+              Previewing as{" "}
+              <strong className="font-semibold">{previewRole?.label ?? previewKey}</strong>
               <button
                 className="ml-1 px-1 hover:text-foreground"
                 onClick={() => setPreviewKey(null)}

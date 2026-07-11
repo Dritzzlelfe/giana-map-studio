@@ -53,19 +53,31 @@ export function ItemsTable({
                 {showRoom && (
                   <td className="px-3 py-2">
                     {room ? (
-                      <Link to="/room/$roomId" params={{ roomId: room.id }} className="hover:underline">
+                      <Link
+                        to="/room/$roomId"
+                        params={{ roomId: room.id }}
+                        className="hover:underline"
+                      >
                         {room.name}
                       </Link>
-                    ) : "—"}
+                    ) : (
+                      "—"
+                    )}
                   </td>
                 )}
                 {showCategory && (
                   <td className="px-3 py-2">
                     {cat ? (
-                      <Link to="/schedule/$categoryKey" params={{ categoryKey: cat.key }} className="hover:underline">
+                      <Link
+                        to="/schedule/$categoryKey"
+                        params={{ categoryKey: cat.key }}
+                        className="hover:underline"
+                      >
                         {cat.label}
                       </Link>
-                    ) : "—"}
+                    ) : (
+                      "—"
+                    )}
                   </td>
                 )}
                 <td className="px-3 py-2 font-medium">
@@ -83,7 +95,9 @@ export function ItemsTable({
                 <td className="px-3 py-2 text-muted-foreground">
                   {it.qty_ordered ?? 0}/{it.qty_needed ?? "?"}
                 </td>
-                <td className="px-3 py-2"><StatusBadge status={it.status} /></td>
+                <td className="px-3 py-2">
+                  <StatusBadge status={it.status} />
+                </td>
                 <td className="px-3 py-2 text-muted-foreground">{it.lead_time ?? "—"}</td>
                 <td className="px-3 py-2 text-muted-foreground">{it.delivery_date ?? "—"}</td>
                 <td className="px-3 py-2 text-muted-foreground">{installer?.name ?? "—"}</td>

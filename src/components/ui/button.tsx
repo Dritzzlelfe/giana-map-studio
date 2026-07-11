@@ -17,10 +17,8 @@ const buttonVariants = cva(
           "border border-[color:var(--border)] bg-transparent text-foreground hover:bg-[color:var(--accent-tint)]",
         secondary:
           "bg-[color:var(--surface-sand)] text-foreground hover:bg-[color:var(--accent-tint)]",
-        ghost:
-          "text-foreground hover:bg-[color:var(--accent-tint)]",
-        link:
-          "text-[color:var(--primary)] underline-offset-4 hover:underline",
+        ghost: "text-foreground hover:bg-[color:var(--accent-tint)]",
+        link: "text-[color:var(--primary)] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",

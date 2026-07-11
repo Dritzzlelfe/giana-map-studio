@@ -60,7 +60,13 @@ export function OutlineView(props: Props) {
   return (
     <div className="h-full overflow-auto p-6">
       <div className="mx-auto max-w-3xl">
-        <OutlineRow node={props.data.tree} depth={0} {...props} expandedIds={expandedIds} setExpandedIds={setExpandedIds} />
+        <OutlineRow
+          node={props.data.tree}
+          depth={0}
+          {...props}
+          expandedIds={expandedIds}
+          setExpandedIds={setExpandedIds}
+        />
       </div>
     </div>
   );
@@ -84,7 +90,12 @@ function OutlineRow({
   onEditingChange,
   expandedIds,
   setExpandedIds,
-}: Props & { node: TreeNode; depth: number; expandedIds: Set<string>; setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>> }) {
+}: Props & {
+  node: TreeNode;
+  depth: number;
+  expandedIds: Set<string>;
+  setExpandedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+}) {
   const [hover, setHover] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(node.title);
@@ -155,7 +166,7 @@ function OutlineRow({
           selectedId === node.id && "bg-secondary",
           highlight && "bg-amber-100/60",
           dim && "opacity-40",
-          !selectedId && "hover:bg-secondary/60"
+          !selectedId && "hover:bg-secondary/60",
         )}
         style={{ marginLeft: depth * 18 }}
         onMouseEnter={() => setHover(true)}
@@ -181,7 +192,11 @@ function OutlineRow({
           aria-label={collapsed ? "Expand" : "Collapse"}
         >
           {hasChildren ? (
-            collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />
+            collapsed ? (
+              <ChevronRight className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )
           ) : (
             <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
           )}
@@ -209,11 +224,16 @@ function OutlineRow({
             }}
             className={cn(
               "min-w-0 flex-1 bg-transparent outline-none border-b border-dashed border-border",
-              isRoot ? "font-display text-base font-semibold" : "text-sm"
+              isRoot ? "font-display text-base font-semibold" : "text-sm",
             )}
           />
         ) : (
-          <span className={cn("min-w-0 flex-1 truncate cursor-text", isRoot ? "font-display text-base font-semibold" : "text-sm")}>
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate cursor-text",
+              isRoot ? "font-display text-base font-semibold" : "text-sm",
+            )}
+          >
             {node.title}
           </span>
         )}
@@ -223,20 +243,50 @@ function OutlineRow({
           </span>
         )}
         {!editing && (
-          <div className={cn("flex shrink-0 items-center gap-0.5", !(hover || selectedId === node.id) && "invisible")}>
-            <IconBtn label="Add child" onClick={(e) => { e.stopPropagation(); onAddChild(node.id); }}>
+          <div
+            className={cn(
+              "flex shrink-0 items-center gap-0.5",
+              !(hover || selectedId === node.id) && "invisible",
+            )}
+          >
+            <IconBtn
+              label="Add child"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddChild(node.id);
+              }}
+            >
               <Plus className="h-3.5 w-3.5" />
             </IconBtn>
             {!isRoot && (
-              <IconBtn label="Add sibling" onClick={(e) => { e.stopPropagation(); onAddSibling(node.id); }}>
+              <IconBtn
+                label="Add sibling"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddSibling(node.id);
+                }}
+              >
                 <Plus className="h-3.5 w-3.5 rotate-45" />
               </IconBtn>
             )}
-            <IconBtn label="Edit details" onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}>
+            <IconBtn
+              label="Edit details"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(node.id);
+              }}
+            >
               <Pencil className="h-3.5 w-3.5" />
             </IconBtn>
             {!isRoot && (
-              <IconBtn label="Delete" danger onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}>
+              <IconBtn
+                label="Delete"
+                danger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(node.id);
+                }}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </IconBtn>
             )}
@@ -292,7 +342,7 @@ function IconBtn({
       onClick={onClick}
       className={cn(
         "rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground",
-        danger && "hover:bg-destructive/10 hover:text-destructive"
+        danger && "hover:bg-destructive/10 hover:text-destructive",
       )}
     >
       {children}

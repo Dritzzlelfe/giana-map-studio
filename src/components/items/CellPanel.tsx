@@ -72,7 +72,9 @@ export function CellPanel({ open, onOpenChange, room, category, items, data, onE
                       {it.title}
                     </button>
                     {it.priority === "asap" && (
-                      <span className="label-micro !text-[9px] text-[color:var(--primary)]">ASAP</span>
+                      <span className="label-micro !text-[9px] text-[color:var(--primary)]">
+                        ASAP
+                      </span>
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">

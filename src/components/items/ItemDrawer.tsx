@@ -3,7 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Trash2 } from "lucide-react";
 import {
@@ -56,8 +62,10 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
       <SheetContent className="w-full overflow-y-auto border-l border-[color:var(--rule-soft)] bg-paper shadow-[var(--shadow-drawer)] sm:max-w-xl">
         <SheetHeader className="border-b border-[color:var(--rule-soft)] pb-4">
           <div className="label-micro">
-            {item.vendor_id ? data.vendorById[item.vendor_id]?.name ?? "Vendor" : "Item"}
-            {item.sku && <span className="ml-2 num-tabular normal-case tracking-normal">· {item.sku}</span>}
+            {item.vendor_id ? (data.vendorById[item.vendor_id]?.name ?? "Vendor") : "Item"}
+            {item.sku && (
+              <span className="ml-2 num-tabular normal-case tracking-normal">· {item.sku}</span>
+            )}
           </div>
           <SheetTitle>
             <Input
@@ -74,36 +82,56 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
         <Section label="Identity">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Room">
-              <Select value={item.room_id ?? NULL_VAL} onValueChange={(v) => patch({ room_id: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.room_id ?? NULL_VAL}
+                onValueChange={(v) => patch({ room_id: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
                   {data.rooms.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
             <Field label="Category">
-              <Select value={item.category_id ?? NULL_VAL} onValueChange={(v) => patch({ category_id: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.category_id ?? NULL_VAL}
+                onValueChange={(v) => patch({ category_id: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
                   {data.categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
             <Field label="Vendor" className="col-span-2">
               <div className="flex gap-2">
-                <Select value={item.vendor_id ?? NULL_VAL} onValueChange={(v) => patch({ vendor_id: nullify(v) })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <Select
+                  value={item.vendor_id ?? NULL_VAL}
+                  onValueChange={(v) => patch({ vendor_id: nullify(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NULL_VAL}>—</SelectItem>
                     {data.vendors.map((v) => (
                       <SelectItem key={v.id} value={v.id}>
-                        {v.name}{v.account_status === "trade_account_open" ? " (trade)" : ""}
+                        {v.name}
+                        {v.account_status === "trade_account_open" ? " (trade)" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -123,14 +151,24 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
                     setNewVendor("");
                     patch({ vendor_id: v.id });
                   }}
-                >Add</Button>
+                >
+                  Add
+                </Button>
               </div>
             </Field>
             <Field label="SKU">
-              <Input value={item.sku ?? ""} onChange={(e) => patch({ sku: e.target.value || null })} className="num-tabular" />
+              <Input
+                value={item.sku ?? ""}
+                onChange={(e) => patch({ sku: e.target.value || null })}
+                className="num-tabular"
+              />
             </Field>
             <Field label="Lead time">
-              <Input value={item.lead_time ?? ""} onChange={(e) => patch({ lead_time: e.target.value || null })} className="num-tabular" />
+              <Input
+                value={item.lead_time ?? ""}
+                onChange={(e) => patch({ lead_time: e.target.value || null })}
+                className="num-tabular"
+              />
             </Field>
           </div>
         </Section>
@@ -139,20 +177,38 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
           <Lifecycle status={item.status} />
           <div className="mt-3 grid grid-cols-2 gap-4">
             <Field label="Status">
-              <Select value={item.status ?? NULL_VAL} onValueChange={(v) => patch({ status: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.status ?? NULL_VAL}
+                onValueChange={(v) => patch({ status: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
-                  {STATUSES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
             <Field label="Priority">
-              <Select value={item.priority ?? NULL_VAL} onValueChange={(v) => patch({ priority: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.priority ?? NULL_VAL}
+                onValueChange={(v) => patch({ priority: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
-                  {PRIORITIES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}
+                  {PRIORITIES.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
@@ -160,7 +216,9 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
               <Input
                 type="number"
                 value={item.qty_needed ?? ""}
-                onChange={(e) => patch({ qty_needed: e.target.value === "" ? null : Number(e.target.value) })}
+                onChange={(e) =>
+                  patch({ qty_needed: e.target.value === "" ? null : Number(e.target.value) })
+                }
                 className="num-tabular"
               />
             </Field>
@@ -168,7 +226,9 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
               <Input
                 type="number"
                 value={item.qty_ordered ?? ""}
-                onChange={(e) => patch({ qty_ordered: e.target.value === "" ? null : Number(e.target.value) })}
+                onChange={(e) =>
+                  patch({ qty_ordered: e.target.value === "" ? null : Number(e.target.value) })
+                }
                 className="num-tabular"
               />
             </Field>
@@ -218,9 +278,7 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
             )}
           </div>
           {!canEditMoney && (
-            <div className="mt-2 text-[11px] text-muted-foreground">
-              Read only for this role.
-            </div>
+            <div className="mt-2 text-[11px] text-muted-foreground">Read only for this role.</div>
           )}
         </Section>
 
@@ -235,22 +293,40 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
               />
             </Field>
             <Field label="Delivery address">
-              <Input value={item.delivery_address ?? ""} onChange={(e) => patch({ delivery_address: e.target.value || null })} />
+              <Input
+                value={item.delivery_address ?? ""}
+                onChange={(e) => patch({ delivery_address: e.target.value || null })}
+              />
             </Field>
             <Field label="Location">
-              <Select value={item.logistics_location ?? NULL_VAL} onValueChange={(v) => patch({ logistics_location: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.logistics_location ?? NULL_VAL}
+                onValueChange={(v) => patch({ logistics_location: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
-                  {LOGISTICS_LOCATIONS.map((l) => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}
+                  {LOGISTICS_LOCATIONS.map((l) => (
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
             <Field label="Storage name">
-              <Input value={item.storage_name ?? ""} onChange={(e) => patch({ storage_name: e.target.value || null })} />
+              <Input
+                value={item.storage_name ?? ""}
+                onChange={(e) => patch({ storage_name: e.target.value || null })}
+              />
             </Field>
             <Field label="Storage address" className="col-span-2">
-              <Input value={item.storage_address ?? ""} onChange={(e) => patch({ storage_address: e.target.value || null })} />
+              <Input
+                value={item.storage_address ?? ""}
+                onChange={(e) => patch({ storage_address: e.target.value || null })}
+              />
             </Field>
           </div>
         </Section>
@@ -259,11 +335,20 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Ordered by" className="col-span-2">
               <div className="flex gap-2">
-                <Select value={item.ordered_by ?? NULL_VAL} onValueChange={(v) => patch({ ordered_by: nullify(v) })}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <Select
+                  value={item.ordered_by ?? NULL_VAL}
+                  onValueChange={(v) => patch({ ordered_by: nullify(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NULL_VAL}>—</SelectItem>
-                    {data.people.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                    {data.people.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Input
@@ -281,15 +366,26 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
                     setNewPerson("");
                     patch({ ordered_by: p.id });
                   }}
-                >Add</Button>
+                >
+                  Add
+                </Button>
               </div>
             </Field>
             <Field label="Installer">
-              <Select value={item.installer ?? NULL_VAL} onValueChange={(v) => patch({ installer: nullify(v) })}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Select
+                value={item.installer ?? NULL_VAL}
+                onValueChange={(v) => patch({ installer: nullify(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NULL_VAL}>—</SelectItem>
-                  {data.people.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {data.people.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
@@ -336,7 +432,9 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
           >
             <Trash2 className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Delete
           </Button>
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
@@ -352,7 +450,15 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={className}>
       <Label className="label-micro mb-1.5 block">{label}</Label>
@@ -439,14 +545,16 @@ function Lifecycle({ status }: { status: string | null }) {
             <span
               className={cn(
                 "label-micro whitespace-nowrap",
-                active ? "text-foreground" : done ? "text-muted-foreground" : "text-muted-foreground/60",
+                active
+                  ? "text-foreground"
+                  : done
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/60",
               )}
             >
               {s.label}
             </span>
-            {i < steps.length - 1 && (
-              <div className="h-px flex-1 bg-[color:var(--rule-soft)]" />
-            )}
+            {i < steps.length - 1 && <div className="h-px flex-1 bg-[color:var(--rule-soft)]" />}
           </div>
         );
       })}

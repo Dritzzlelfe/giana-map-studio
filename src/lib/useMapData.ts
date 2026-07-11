@@ -80,9 +80,7 @@ export function useUpdateNode() {
       await qc.cancelQueries({ queryKey: MAP_QUERY_KEY });
       const prev = qc.getQueryData<LoadedMap | null>(MAP_QUERY_KEY);
       if (prev) {
-        const nodes = prev.nodes.map((n) =>
-          n.id === input.id ? { ...n, ...input.patch } : n
-        );
+        const nodes = prev.nodes.map((n) => (n.id === input.id ? { ...n, ...input.patch } : n));
         const { assemble } = await import("./mapApi");
         qc.setQueryData(MAP_QUERY_KEY, assemble(prev.map, nodes));
       }

@@ -75,13 +75,23 @@ export type LoadedData = {
   personById: Record<string, Person>;
 };
 
+// Non-money columns of items — the ONLY columns readable directly from
+// public.items by authenticated. Money columns are read through items_visible.
+const ITEM_WRITE_RETURN_COLS =
+  "id, room_id, category_id, vendor_id, title, description, sku, design_placement, qty_needed, qty_ordered, status, priority, ordered_by, installer, lead_time, delivery_address, delivery_date, storage_name, storage_address, logistics_location, option_source, client_paid_gad, gad_paid_vendor, created_at, updated_at";
+
 export async function loadAll(): Promise<LoadedData> {
   const [r, c, v, p, i] = await Promise.all([
     supabase.from("rooms").select("*").order("sort_order"),
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("vendors").select("*").order("name"),
     supabase.from("people").select("*").order("name"),
-    supabase.from("items").select("*").order("created_at"),
+    // Read items through the role-aware view so money columns are nulled for
+    // roles without full money visibility.
+    (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> })
+      .from("items_visible")
+      .select("*")
+      .order("created_at"),
   ]);
   for (const x of [r, c, v, p, i]) if (x.error) throw x.error;
   const rooms = (r.data ?? []) as Room[];
@@ -103,16 +113,25 @@ export async function loadAll(): Promise<LoadedData> {
   };
 }
 
-export async function createItem(patch: Partial<Item> & { title: string }): Promise<Item> {
-  const { data, error } = await supabase.from("items").insert(patch).select("*").single();
+export async function createItem(patch: Partial<Item> & { title: string }): Promise<Partial<Item> & { id: string }> {
+  const { data, error } = await supabase
+    .from("items")
+    .insert(patch)
+    .select(ITEM_WRITE_RETURN_COLS)
+    .single();
   if (error) throw error;
-  return data as Item;
+  return data as Partial<Item> & { id: string };
 }
 
-export async function updateItem(id: string, patch: Partial<Item>): Promise<Item> {
-  const { data, error } = await supabase.from("items").update(patch).eq("id", id).select("*").single();
+export async function updateItem(id: string, patch: Partial<Item>): Promise<Partial<Item> & { id: string }> {
+  const { data, error } = await supabase
+    .from("items")
+    .update(patch)
+    .eq("id", id)
+    .select(ITEM_WRITE_RETURN_COLS)
+    .single();
   if (error) throw error;
-  return data as Item;
+  return data as Partial<Item> & { id: string };
 }
 
 export async function deleteItem(id: string): Promise<void> {

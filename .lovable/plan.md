@@ -1,99 +1,82 @@
-## M1 Pass B — Business data model (schema + backfill + security)
+# Styling pass — Giana Allen editorial UI
 
-One idempotent migration, internally staged. No new screens. All existing screens keep working. All existing data preserved.
+Presentation-only refresh. No migrations, no policy/RLS/GRANT changes, no query changes, no new columns in selects. All money continues to be read via the existing `*_visible` views; masked (NULL) values render as a discreet placeholder.
 
-### Stage 1 — Projects and scoping
+## 1. Brand tokens (once, app-wide)
 
-- `CREATE TABLE public.projects` (name, address, status, timestamps + updated_at trigger).
-- Seed one project **Candida Smith** (8 West 19th Street, Floor 11, New York NY 10011) via idempotent `INSERT ... WHERE NOT EXISTS`; capture its id into a `DO` block variable for the backfill.
-- Add nullable `project_id uuid REFERENCES projects(id)` to `rooms` and `items`.
-- Backfill every existing row on both tables to Candida Smith's id.
-- `ALTER COLUMN project_id SET NOT NULL` on both.
-- Workspace-level tables stay global: `categories`, `vendors`, `people`, `roles`, `profiles`, plus the new `products`, `inventory_records`, `library_entries`, `documents`, `media`.
+Edit `src/routes/__root.tsx` to `<link>` **Libre Franklin** (weights 300/400/500/600) from Google Fonts.
 
-### Stage 2 — Product vs context
+Rewrite the token layer in `src/styles.css`:
 
-- `CREATE TABLE public.products` (name, brand, width_in, length_in, height_in, depth_in, finish, material, sku, default_vendor_id → vendors, timestamps + trigger).
-- Backfill: one row per existing `items` row (`name ← items.title`, `sku ← items.sku`, `default_vendor_id ← items.vendor_id`). Store the mapping via a temp `item_id → product_id` table inside the migration.
-- Add `items.product_id uuid REFERENCES products`; populate from the mapping; `SET NOT NULL`.
-- Keep `items.title/sku/description/design_placement` for now — a later cleanup migration drops the redundant identity columns after M2.
+- `--font-sans` and `--font-serif` both → `"Libre Franklin", ui-sans-serif, system-ui, sans-serif`. Hierarchy is weight + size + tracking, not family. Kill the `Fraunces` reference and the `.font-display` serif rule (keep the class name so existing JSX still compiles, but map it to a light+tracked Libre Franklin style).
+- Palette (converted to oklch, kept as CSS variables consumed by the existing `@theme inline` block):
+  - `--background` = `#f5efef` (paper)
+  - `--card` = `#ffffff` used sparingly; add `--surface-sand` = `#f2efea` for recessed panels
+  - `--foreground` = `#1a1a1a` (ink), `--muted-foreground` = `#606060`
+  - `--border` = hairline gray `#e5e0dd`; add `--rule-soft` for matrix hairlines
+  - `--primary` = terracotta `#a6615f`, `--primary-foreground` = paper; `--accent-hover` = `#965755`, `--accent-tint` = `#f4ebeb`
+  - `--ring` = terracotta halo at low alpha
+  - Status tones (muted, not traffic-light): `--status-needs` `#a6615f`, `--status-inflight` `#d9a65f`, `--status-settled` `#8ca65f`, `--status-empty` `#d9d9d9`
+- Radius: shrink `--radius` to `4px` (near-square).
+- Shadows: add `--shadow-cell` (warm charcoal 6% y1 blur2) and `--shadow-drawer` (warm charcoal 14% y8 blur24). Remove any heavy defaults.
+- Utilities: add `.num-tabular { font-variant-numeric: tabular-nums; }` and `.label-micro { text-transform: uppercase; letter-spacing: 0.12em; font-size: 10.5px; font-weight: 600; color: var(--muted-foreground); }`.
+- Retire the `--cat-*` palette usage in chrome (leave variables so nothing breaks; stop applying them as backgrounds).
 
-### Stage 3 — Other context records & shared pools
+## 2. Screen 1 — The Matrix (`src/routes/_authenticated/index.tsx`)
 
-- `CREATE TABLE public.inventory_records` (product_id, ownership, location, resale_status, listed_website, listed_chairish, notes, timestamps + trigger).
-- `CREATE TABLE public.library_entries` (product_id, scope, project_id?, room_id?, stock_on_hand, **price_per_unit numeric [money]**, price_unit, source_contact, notes, timestamps + trigger).
+Rework presentation only; query and rollup logic unchanged.
 
-### Stage 4 — Money and workflow
+- Page frame: paper background, generous outer padding, editorial page header with project name in light Libre Franklin ~28px slightly tracked, muted subtitle, thin rule under it.
+- Table: remove card border/shadow; use hairline rules only at the header row and between rooms. No vertical dividers inside the body. Cell height ~56–60px, generous line-height.
+- Sticky room column: `position: sticky; left: 0` with paper bg + right hairline + subtle `--shadow-cell` on horizontal scroll. Already sticky top header — restyle: uppercase micro labels, no background fill beyond paper, thin bottom rule.
+- Header row + first column show a light **total** (existing `items.length` count per row/column — computed client-side from already-loaded items, no new fetch).
+- Cell (`MatrixCell` extracted from inline JSX into `src/components/items/MatrixCell.tsx`):
+  - committed count in tabular Libre Franklin regular; muted status dot to the left; `+N opt` in `--muted-foreground` micro text; ASAP as small uppercase tick in terracotta (no filled pill).
+  - Empty cells nearly blank — no `+` glyph resting; reveal a faint `+` on hover only.
+  - Hover: soft `--accent-tint` fill on cell **and** a low-opacity tint on the whole row and the whole column (achieved via CSS `:has` on the table or hover class toggles on `<tr>`/column index).
+  - Selected: inset terracotta ring + `--accent-tint` fill.
+- Legend restyled to muted dots with lowercase labels.
+- Add a "Hide empty columns" toggle (client-only `useState`) in the page header that filters `data.categories` by whether any item exists in that column across all rooms.
+- No spinners: replace the `Loader2` block with a quiet "Loading…" line in muted ink.
 
-- `CREATE TABLE public.payments` (item_id ON DELETE CASCADE, **amount [money]**, direction, state, due_date, phase_id nullable, timestamps + trigger).
-- `CREATE TABLE public.budgets` — one per project (project_id UNIQUE, **construction_budget**, **ffe_budget**, **per_unit_rates jsonb**, timestamps + trigger). All numeric amounts are money.
-- Add `rooms.target_amount numeric` (money) — simpler than a side table, keeps room UX single-row.
-- `CREATE TABLE public.phases` (project_id, name, sort_order, axis in ('construction','ffe'), timestamps + trigger). Seed for Candida: demolition, rough-in, install on construction axis; a single "FF&E" phase on ffe axis. `payments.phase_id REFERENCES phases`.
-- `CREATE TABLE public.approvals` (item_id ON DELETE CASCADE, decided_by → people null, decided_at, mode in ('dashboard','verbal_logged','declined'), logged_by → profiles, note, created_at).
+## 3. Screen 2 — Item Drawer (`src/components/items/ItemDrawer.tsx`, plus `StatusDot.tsx`)
 
-### Stage 5 — Documents vs media
+Restyle only.
 
-- `CREATE TABLE public.documents` (project_id?, room_id?, type in ('contract','gc_contract','permit','building_paperwork','other'), related_party → people?, title, file_url, expires_on?, timestamps + trigger).
-- `CREATE TABLE public.media` (product_id?, item_id?, lookbook_section?, room_id?, file_url, kind in ('photo','reference','lookbook'), created_at).
+- Sheet width bumped, `--shadow-drawer`, paper background, no heavy border. Matrix stays visible behind (already a Sheet).
+- Header block: product photo (square, hairline frame; **dashed** frame when `status === 'option'`, solid otherwise), name in Libre Franklin ~22px light, brand/vendor in muted micro label, SKU + dimensions in tabular figures on a second line.
+- Stacked quiet blocks separated by whitespace and a single hairline, each with a `.label-micro` heading: **Lifecycle**, **Money**, **Logistics**, **Approval**, **People**, **Photos**.
+- Lifecycle: horizontal step trail (option → approved → committed → ordered → delivered → installed) rendered as small dots + labels; current step in ink, past in muted, future as hairline outline. Pure derived-from-`status` styling.
+- Options everywhere: dashed hairlines, italic muted ink; commitments: solid, full ink. Status dot palette switched to muted tones.
+- **Money block — masking preserved**: continue to read whichever money fields are already on the item object (from `items_visible`). Render helper:
 
-### Stage 6 — Security (inherits pass A rules)
+  ```tsx
+  const Money = ({ value }: { value: number | null | undefined }) =>
+    value == null
+      ? <span className="text-[color:var(--muted-foreground)]">—</span>
+      : <span className="num-tabular">${value.toLocaleString()}</span>;
+  ```
 
-For every new table: enable RLS, GRANT to `authenticated`/`service_role` per policy, revoke anon, and add SELECT/INSERT/UPDATE/DELETE policies gated on `app_private.has_module_right(module, level)` with the following module map:
+  No new selects, no fallback fetch, no attempt to detect "why" it is null. A null stays a dash.
+- `StatusBadge` restyled to dark-ink pills with uppercase micro text; `option` badge dashed + tentative; `ASAP` marker is a small uppercase terracotta tick, never a filled badge.
 
-| Table | Module |
-|---|---|
-| projects | `item` (view = all authenticated; edit = admin-only via has_module_right('item','edit') for now) |
-| products | `item` |
-| inventory_records | `inventory` |
-| library_entries | `library` |
-| payments | `cashflow` |
-| budgets | `budget` |
-| rooms.target_amount | (rooms policy unchanged; column protected by money masking) |
-| phases | `budget` |
-| approvals | `approvals` |
-| documents | `library` |
-| media | `lookbook` |
+## 4. Ancillary chrome
 
-**Money column protection (CRITICAL, inherits pass A):**
+- `AppShell` (`src/components/shell/AppShell.tsx`): paper bg, hairline divider under top bar, nav labels in micro-uppercase, active item marked by a 2px terracotta underline (no filled background).
+- `Button` (shadcn `src/components/ui/button.tsx`): `default` variant → terracotta bg, paper fg, hover `--accent-hover`; `ghost`/`outline` variants → ink text, hairline border, no color fills; radius 4px; remove bounce.
+- `Card` / table shells: swap heavy borders for hairlines; remove default shadows; only the drawer and hovered cells get elevation.
+- `ItemsTable` and `CellPanel`: same hairline treatment, tabular numerals in Qty/Lead time/Delivery columns, muted `—` for empty values (already present).
 
-For each money column — `payments.amount`, `budgets.construction_budget`, `budgets.ffe_budget`, `budgets.per_unit_rates`, `rooms.target_amount`, `library_entries.price_per_unit`:
+## Explicitly untouched
 
-1. `REVOKE SELECT (col)` from `authenticated` on the base table.
-2. Expose ONLY through a SECURITY DEFINER view (`security_invoker=false, security_barrier=true`, OWNER `postgres`), with per-column `CASE` on `app_private.current_money_visibility()`.
+- `supabase/migrations/**`, `app_private.*`, `enforce_money_write`, all RLS policies and GRANTs.
+- `items_visible`, `payments_visible`, `budgets_visible`, `room_targets_visible`, `library_entries_visible` — reads keep flowing through these.
+- `itemsApi.ts` / `mapApi.ts` select lists: no columns added, no `gad_cost`/`client_price`/`balance_due_on_delivery` referenced directly.
+- Auth, roles, profiles, Admin logic, preview-as-role.
 
-Definer views to create:
+## Verify after build
 
-- `public.payments_visible` — row filter `has_module_right('cashflow','view')`; `amount` masked as:
-  - `direction='gad_to_vendor'` → visible only when `'full'`
-  - `direction='client_to_gad'` → visible when `'full'` or `'client_price'`
-  - else NULL
-- `public.budgets_visible` — row filter `has_module_right('budget','view')`; `construction_budget`, `ffe_budget`, `per_unit_rates` visible when `'full'`; `ffe_budget` also visible when `'client_price'` (client-facing total); NULL otherwise.
-- `public.library_entries_visible` — row filter `has_module_right('library','view')`; `price_per_unit` visible only when `'full'`.
-- For `rooms.target_amount`: create `public.rooms_visible` (or add masked column via a companion view `public.room_targets_visible`). Use a dedicated `public.room_targets_visible(room_id, target_amount)` to avoid disturbing the existing `rooms` reads — `target_amount` visible when `'full'` or `'client_price'`, else NULL.
-
-`items_visible` is untouched — its money masking and row filter stay. Verify it still selects after `product_id`/`project_id` are added (they're non-money cols, no revoke needed; view re-created only if column list expands — this pass does NOT expose them through the view).
-
-### Stage 7 — Wiring + verification
-
-- Regenerate Supabase types (post-migration).
-- No UI changes in this pass. `useItemsData`/`loadAll` keep reading `items_visible` and legacy `items.title/sku`; joining to `products` comes in M2.
-- Update the security memory to list the new definer views as accepted linter false-positives with the same rationale as `items_visible`.
-- Verification queries embedded at the end of the migration (raise notice, no-op on success):
-  1. Candida project exists; `COUNT(*) FROM rooms WHERE project_id IS NULL = 0`; same for items.
-  2. `COUNT(products) = COUNT(items)`; `COUNT(items WHERE product_id IS NULL) = 0`.
-  3. `information_schema.column_privileges`: `authenticated` has NO SELECT on `payments.amount`, `budgets.construction_budget`, `budgets.ffe_budget`, `budgets.per_unit_rates`, `rooms.target_amount`, `library_entries.price_per_unit`.
-  4. Every new table has `rowsecurity = true` and at least one policy in `pg_policies`.
-
-### Technical notes
-
-- Everything wrapped in `DO $$ ... $$` blocks / `CREATE ... IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS` / `ALTER ... IF EXISTS` guards for idempotency. Policies use `DROP POLICY IF EXISTS ... ; CREATE POLICY ...`. Views use `CREATE OR REPLACE VIEW`.
-- Every new public table: GRANT block before ENABLE RLS, per house rule.
-- `updated_at` triggers reuse existing `public.set_updated_at()`.
-- No changes to: `app_private.*` helpers, `enforce_money_write` trigger, preview-as-role guard, existing RLS on rooms/items/vendors/etc., write paths, or client code.
-
-### Out of scope (deferred)
-
-- New business screens (M2).
-- Intake, AI, Scheduling (Phase 3).
-- Dropping legacy `items.title/sku` columns (post-M2 cleanup).
-- QuickBooks integration.
+1. `git diff --stat supabase/ src/integrations/supabase/` — empty.
+2. `rg "gad_cost|client_price|balance_due_on_delivery" src` — matches only inside the Money renderer reading pre-fetched view fields; no new `.select(...)` includes them.
+3. Playwright: load `/` as an authenticated viewer, screenshot the Matrix (sticky column + header on scroll, hover row/col highlight, selected cell), open a cell → open an item, screenshot the drawer. Confirm masked money renders as `—`.
+4. Report anything deferred (e.g., if a shadcn primitive needs a variant that would require touching component logic beyond CSS, note it instead of forcing it).

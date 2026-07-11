@@ -1,0 +1,2 @@
+GRANT SELECT ON public.items_visible, public.payments_visible, public.budgets_visible, public.library_entries_visible, public.room_targets_visible TO authenticated;
+GRANT ALL  ON public.items_visible, public.payments_visible, public.budgets_visible, public.library_entries_visible, public.room_targets_visible TO service_role;

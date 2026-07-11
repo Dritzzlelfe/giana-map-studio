@@ -51,13 +51,7 @@ BEGIN
   ---------------------------------------------------------------------------
   -- 3. `anon` must NOT have SELECT on user_roles (privilege-escalation guard).
   ---------------------------------------------------------------------------
-  SELECT count(*) INTO v_count
-    FROM information_schema.role_table_grants
-   WHERE table_schema = 'public'
-     AND table_name = 'user_roles'
-     AND grantee = 'anon'
-     AND privilege_type = 'SELECT';
-  IF v_count > 0 THEN
+  IF has_table_privilege('anon', 'public.user_roles', 'SELECT') THEN
     RAISE EXCEPTION 'anon must not have SELECT on public.user_roles';
   END IF;
 
@@ -65,17 +59,14 @@ BEGIN
   -- 4. `authenticated` must have SELECT on the money-masking views used by
   --    the app; otherwise the client bug we just fixed regresses.
   ---------------------------------------------------------------------------
-  SELECT string_agg(v.table_name, ', ')
+  SELECT string_agg(c.relname, ', ')
     INTO v_missing
-    FROM information_schema.views v
-    LEFT JOIN information_schema.role_table_grants g
-      ON g.table_schema = v.table_schema
-     AND g.table_name  = v.table_name
-     AND g.grantee     = 'authenticated'
-     AND g.privilege_type = 'SELECT'
-   WHERE v.table_schema = 'public'
-     AND v.table_name LIKE '%\_visible' ESCAPE '\'
-     AND g.grantee IS NULL;
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE n.nspname = 'public'
+     AND c.relkind = 'v'
+     AND c.relname LIKE '%\_visible' ESCAPE '\'
+     AND NOT has_table_privilege('authenticated', c.oid, 'SELECT');
 
   IF v_missing IS NOT NULL THEN
     RAISE EXCEPTION 'authenticated is missing SELECT on view(s): %', v_missing;

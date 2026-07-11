@@ -558,14 +558,7 @@ export type Database = {
       }
     }
     Functions: {
-      current_money_visibility: { Args: never; Returns: string }
-      current_preview_role_key: { Args: never; Returns: string }
-      current_role_key: { Args: never; Returns: string }
-      has_module_right: {
-        Args: { _level: string; _module: string }
-        Returns: boolean
-      }
-      is_admin: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

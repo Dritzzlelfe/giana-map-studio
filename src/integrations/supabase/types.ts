@@ -14,6 +14,106 @@ export type Database = {
   }
   public: {
     Tables: {
+      approvals: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          item_id: string
+          logged_by: string | null
+          mode: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          item_id: string
+          logged_by?: string | null
+          mode: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          item_id?: string
+          logged_by?: string | null
+          mode?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          construction_budget: number | null
+          created_at: string
+          ffe_budget: number | null
+          id: string
+          per_unit_rates: Json
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          construction_budget?: number | null
+          created_at?: string
+          ffe_budget?: number | null
+          id?: string
+          per_unit_rates?: Json
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          construction_budget?: number | null
+          created_at?: string
+          ffe_budget?: number | null
+          id?: string
+          per_unit_rates?: Json
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -41,6 +141,121 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          created_at: string
+          expires_on: string | null
+          file_url: string | null
+          id: string
+          project_id: string | null
+          related_party: string | null
+          room_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_on?: string | null
+          file_url?: string | null
+          id?: string
+          project_id?: string | null
+          related_party?: string | null
+          room_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_on?: string | null
+          file_url?: string | null
+          id?: string
+          project_id?: string | null
+          related_party?: string | null
+          room_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_related_party_fkey"
+            columns: ["related_party"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "documents_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_records: {
+        Row: {
+          created_at: string
+          id: string
+          listed_chairish: boolean
+          listed_website: boolean
+          location: string | null
+          notes: string | null
+          ownership: string
+          product_id: string
+          resale_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listed_chairish?: boolean
+          listed_website?: boolean
+          location?: string | null
+          notes?: string | null
+          ownership: string
+          product_id: string
+          resale_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listed_chairish?: boolean
+          listed_website?: boolean
+          location?: string | null
+          notes?: string | null
+          ownership?: string
+          product_id?: string
+          resale_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           balance_due_on_delivery: number | null
@@ -61,6 +276,8 @@ export type Database = {
           option_source: string | null
           ordered_by: string | null
           priority: string | null
+          product_id: string
+          project_id: string
           qty_needed: number | null
           qty_ordered: number | null
           room_id: string | null
@@ -91,6 +308,8 @@ export type Database = {
           option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
+          product_id: string
+          project_id: string
           qty_needed?: number | null
           qty_ordered?: number | null
           room_id?: string | null
@@ -121,6 +340,8 @@ export type Database = {
           option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
+          product_id?: string
+          project_id?: string
           qty_needed?: number | null
           qty_ordered?: number | null
           room_id?: string | null
@@ -155,6 +376,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
             foreignKeyName: "items_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
@@ -166,6 +408,80 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_entries: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          price_per_unit: number | null
+          price_unit: string | null
+          product_id: string
+          project_id: string | null
+          room_id: string | null
+          scope: string
+          source_contact: string | null
+          stock_on_hand: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_per_unit?: number | null
+          price_unit?: string | null
+          product_id: string
+          project_id?: string | null
+          room_id?: string | null
+          scope: string
+          source_contact?: string | null
+          stock_on_hand?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_per_unit?: number | null
+          price_unit?: string | null
+          product_id?: string
+          project_id?: string | null
+          room_id?: string | null
+          scope?: string
+          source_contact?: string | null
+          stock_on_hand?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_entries_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "library_entries_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -257,6 +573,133 @@ export type Database = {
         }
         Relationships: []
       }
+      media: {
+        Row: {
+          created_at: string
+          file_url: string
+          id: string
+          item_id: string | null
+          kind: string
+          lookbook_section: string | null
+          product_id: string | null
+          room_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_url: string
+          id?: string
+          item_id?: string | null
+          kind: string
+          lookbook_section?: string | null
+          product_id?: string | null
+          room_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_url?: string
+          id?: string
+          item_id?: string | null
+          kind?: string
+          lookbook_section?: string | null
+          product_id?: string | null
+          room_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "media_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number | null
+          created_at: string
+          direction: string
+          due_date: string | null
+          id: string
+          item_id: string
+          phase_id: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          direction: string
+          due_date?: string | null
+          id?: string
+          item_id: string
+          phase_id?: string | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          direction?: string
+          due_date?: string | null
+          id?: string
+          item_id?: string
+          phase_id?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       people: {
         Row: {
           created_at: string
@@ -283,6 +726,100 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      phases: {
+        Row: {
+          axis: string
+          created_at: string
+          id: string
+          name: string
+          project_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          axis: string
+          created_at?: string
+          id?: string
+          name: string
+          project_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          axis?: string
+          created_at?: string
+          id?: string
+          name?: string
+          project_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand: string | null
+          created_at: string
+          default_vendor_id: string | null
+          depth_in: number | null
+          finish: string | null
+          height_in: number | null
+          id: string
+          length_in: number | null
+          material: string | null
+          name: string
+          sku: string | null
+          updated_at: string
+          width_in: number | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          default_vendor_id?: string | null
+          depth_in?: number | null
+          finish?: string | null
+          height_in?: number | null
+          id?: string
+          length_in?: number | null
+          material?: string | null
+          name: string
+          sku?: string | null
+          updated_at?: string
+          width_in?: number | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          default_vendor_id?: string | null
+          depth_in?: number | null
+          finish?: string | null
+          height_in?: number | null
+          id?: string
+          length_in?: number | null
+          material?: string | null
+          name?: string
+          sku?: string | null
+          updated_at?: string
+          width_in?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_default_vendor_id_fkey"
+            columns: ["default_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -329,6 +866,33 @@ export type Database = {
           },
         ]
       }
+      projects: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           created_at: string
@@ -368,7 +932,9 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          project_id: string
           sort_order: number
+          target_amount: number | null
           updated_at: string
         }
         Insert: {
@@ -376,7 +942,9 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          project_id: string
           sort_order?: number
+          target_amount?: number | null
           updated_at?: string
         }
         Update: {
@@ -384,10 +952,20 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          project_id?: string
           sort_order?: number
+          target_amount?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rooms_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {
@@ -427,6 +1005,44 @@ export type Database = {
       }
     }
     Views: {
+      budgets_visible: {
+        Row: {
+          construction_budget: number | null
+          created_at: string | null
+          ffe_budget: number | null
+          id: string | null
+          per_unit_rates: Json | null
+          project_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          construction_budget?: never
+          created_at?: string | null
+          ffe_budget?: never
+          id?: string | null
+          per_unit_rates?: never
+          project_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          construction_budget?: never
+          created_at?: string | null
+          ffe_budget?: never
+          id?: string | null
+          per_unit_rates?: never
+          project_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items_visible: {
         Row: {
           balance_due_on_delivery: number | null
@@ -544,6 +1160,13 @@ export type Database = {
             foreignKeyName: "items_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "items_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
             referencedRelation: "rooms"
             referencedColumns: ["id"]
           },
@@ -555,6 +1178,153 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      library_entries_visible: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          notes: string | null
+          price_per_unit: number | null
+          price_unit: string | null
+          product_id: string | null
+          project_id: string | null
+          room_id: string | null
+          scope: string | null
+          source_contact: string | null
+          stock_on_hand: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          price_per_unit?: never
+          price_unit?: string | null
+          product_id?: string | null
+          project_id?: string | null
+          room_id?: string | null
+          scope?: string | null
+          source_contact?: string | null
+          stock_on_hand?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          notes?: string | null
+          price_per_unit?: never
+          price_unit?: string | null
+          product_id?: string | null
+          project_id?: string | null
+          room_id?: string | null
+          scope?: string | null
+          source_contact?: string | null
+          stock_on_hand?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_entries_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "room_targets_visible"
+            referencedColumns: ["room_id"]
+          },
+          {
+            foreignKeyName: "library_entries_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments_visible: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          direction: string | null
+          due_date: string | null
+          id: string | null
+          item_id: string | null
+          phase_id: string | null
+          state: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: never
+          created_at?: string | null
+          direction?: string | null
+          due_date?: string | null
+          id?: string | null
+          item_id?: string | null
+          phase_id?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: never
+          created_at?: string | null
+          direction?: string | null
+          due_date?: string | null
+          id?: string | null
+          item_id?: string | null
+          phase_id?: string | null
+          state?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_targets_visible: {
+        Row: {
+          room_id: string | null
+          target_amount: number | null
+        }
+        Insert: {
+          room_id?: string | null
+          target_amount?: never
+        }
+        Update: {
+          room_id?: string | null
+          target_amount?: never
+        }
+        Relationships: []
       }
     }
     Functions: {

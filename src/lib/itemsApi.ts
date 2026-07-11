@@ -116,7 +116,10 @@ export async function loadAll(): Promise<LoadedData> {
 export async function createItem(patch: Partial<Item> & { title: string }): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
-    .insert(patch)
+    // project_id and product_id are auto-filled by a BEFORE INSERT trigger
+    // (items_autofill_context), so the generated types' required fields
+    // don't apply at the app layer.
+    .insert(patch as never)
     .select(ITEM_WRITE_RETURN_COLS)
     .single();
   if (error) throw error;

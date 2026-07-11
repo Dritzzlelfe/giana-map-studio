@@ -23,6 +23,8 @@ import {
 } from "@/lib/useCurrentProfile";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import logoAsset from "@/assets/giana-allen-logo.webp.asset.json";
+
 
 const NAV: {
   to: string;
@@ -88,11 +90,14 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
       <Toaster richColors position="top-right" />
       <header className="shrink-0 border-b border-[color:var(--rule-soft)] bg-paper">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-6 px-8 py-4">
-          <div className="min-w-0">
-            <h1 className="font-display text-[15px] font-normal tracking-[0.14em] uppercase">
-              Giana Allen <span className="text-muted-foreground">Design</span>
-            </h1>
-          </div>
+          <Link to="/" className="flex min-w-0 items-center">
+            <img
+              src={logoAsset.url}
+              alt="Giana Allen Design"
+              className="h-8 w-auto object-contain"
+            />
+          </Link>
+
           <nav className="ml-2 flex items-center gap-1">
             {visibleNav.map((n) => {
               const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);

@@ -6,6 +6,7 @@ import { useCreateItem, useDeleteItem } from "@/lib/useItemsData";
 import type { Category, Item, LoadedData, Room } from "@/lib/itemsApi";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;

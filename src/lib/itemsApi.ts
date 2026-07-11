@@ -82,7 +82,9 @@ const ITEM_WRITE_RETURN_COLS =
 
 export async function loadAll(): Promise<LoadedData> {
   const [r, c, v, p, i] = await Promise.all([
-    supabase.from("rooms").select("*").order("sort_order"),
+    // Exclude money column `target_amount` — authenticated has no SELECT on it;
+    // it is exposed only through `room_targets_visible` with role-aware masking.
+    supabase.from("rooms").select("id, name, sort_order, active, created_at, updated_at, project_id").order("sort_order"),
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("vendors").select("*").order("name"),
     supabase.from("people").select("*").order("name"),

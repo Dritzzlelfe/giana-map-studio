@@ -33,11 +33,11 @@ const NAV: {
   exact: boolean;
   module: ModuleKey;
 }[] = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: false, module: "matrix" },
+  { to: "/room", label: "Rooms", icon: HomeIcon, exact: false, module: "room" },
   { to: "/", label: "Matrix", icon: Grid3x3, exact: true, module: "matrix" },
   { to: "/schedule", label: "Schedule", icon: ListTree, exact: false, module: "schedule" },
-  { to: "/room", label: "Room", icon: HomeIcon, exact: false, module: "room" },
   { to: "/map", label: "Mind map", icon: Network, exact: false, module: "matrix" },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: false, module: "matrix" },
   { to: "/admin", label: "Admin", icon: Shield, exact: false, module: "admin" },
 ];
 

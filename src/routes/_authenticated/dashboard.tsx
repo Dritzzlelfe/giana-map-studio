@@ -247,6 +247,47 @@ function Metric({
   );
 }
 
+function CashBucket({
+  label,
+  bucket,
+}: {
+  label: string;
+  bucket: { client: { total: number; count: number; masked: boolean }; vendor: { total: number; count: number; masked: boolean } };
+}) {
+  return (
+    <div className="rounded border bg-muted/20 p-3">
+      <div className="label-micro">{label}</div>
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <Lane title="Client → GAD" lane={bucket.client} />
+        <Lane title="GAD → Vendor" lane={bucket.vendor} />
+      </div>
+    </div>
+  );
+}
+
+function Lane({
+  title,
+  lane,
+}: {
+  title: string;
+  lane: { total: number; count: number; masked: boolean };
+}) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{title}</div>
+      <div className="num-tabular text-lg font-light">
+        {lane.count === 0 ? "—" : fmtMoney(lane.total)}
+        {lane.masked && lane.count > 0 && (
+          <span className="ml-1 text-xs italic text-muted-foreground">· partial</span>
+        )}
+      </div>
+      <div className="text-[10px] text-muted-foreground">
+        {lane.count} {lane.count === 1 ? "payment" : "payments"}
+      </div>
+    </div>
+  );
+}
+
 function ItemList({
   items,
   data,

@@ -424,7 +424,7 @@ function PhaseSelect({
         <SelectValue placeholder="—" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NULL_VAL}>— unscheduled</SelectItem>
+        <SelectItem value={NULL_VAL}>Non planifié</SelectItem>
         {phases.map((p) => (
           <SelectItem key={p.id} value={p.id}>
             {p.name} ({p.axis === "ffe" ? "FF&E" : "Construction"})

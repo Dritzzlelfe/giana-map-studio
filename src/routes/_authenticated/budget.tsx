@@ -5,6 +5,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
 import { useBudgets, useUpsertBudget, type Budget } from "@/lib/budgetsApi";
 import { useUpdateRoom } from "@/lib/roomsApi";
+import { useAllRoomTargets } from "@/lib/useAllRoomTargets";
 import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import {
   axisSpend,

@@ -89,24 +89,29 @@ function CashflowPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Banknote className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-          <h2 className="font-display text-lg font-semibold">Cashflow</h2>
-          {money === "none" && (
-            <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
-              Amounts hidden by your role
-            </span>
-          )}
-          <div className="ml-auto flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCashCallOpen(true)} disabled={isEmpty}>
-              <Printer className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Cash call
-            </Button>
-            <Button size="sm" onClick={() => setAddOpen(true)} disabled={!items}>
-              <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add payment
-            </Button>
+      <div className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
+            <div className="editorial-eyebrow mb-2">Trésorerie · réel uniquement</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Banknote className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
+              <h1 className="font-display text-3xl tracking-tight">Cashflow</h1>
+              {money === "none" && (
+                <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
+                  Montants masqués par votre rôle
+                </span>
+              )}
+              <div className="ml-auto flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCashCallOpen(true)} disabled={isEmpty}>
+                  <Printer className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Cash call
+                </Button>
+                <Button size="sm" onClick={() => setAddOpen(true)} disabled={!items}>
+                  <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add payment
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+
 
         {(itemsLoading || pLoading) && (
           <div className="text-muted-foreground">

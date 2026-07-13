@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2, Truck, AlertTriangle, Printer, MapPin } from "lucide-react";
+import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
@@ -14,6 +14,17 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 
 export const Route = createFileRoute("/_authenticated/logistics")({
   head: () => ({ meta: [{ title: "Logistics — Project Map" }] }),

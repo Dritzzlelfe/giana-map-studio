@@ -271,13 +271,16 @@ export type Database = {
           gad_cost: number | null
           gad_paid_vendor: boolean
           id: string
+          import_source: string | null
           installer: string | null
+          is_fee: boolean
           lead_time: string | null
           logistics_location: string | null
           option_source: string | null
           ordered_by: string | null
           priority: string | null
           product_id: string
+          programa_status: string | null
           project_id: string
           qty_needed: number | null
           qty_ordered: number | null
@@ -304,13 +307,16 @@ export type Database = {
           gad_cost?: number | null
           gad_paid_vendor?: boolean
           id?: string
+          import_source?: string | null
           installer?: string | null
+          is_fee?: boolean
           lead_time?: string | null
           logistics_location?: string | null
           option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
           product_id: string
+          programa_status?: string | null
           project_id: string
           qty_needed?: number | null
           qty_ordered?: number | null
@@ -337,13 +343,16 @@ export type Database = {
           gad_cost?: number | null
           gad_paid_vendor?: boolean
           id?: string
+          import_source?: string | null
           installer?: string | null
+          is_fee?: boolean
           lead_time?: string | null
           logistics_location?: string | null
           option_source?: string | null
           ordered_by?: string | null
           priority?: string | null
           product_id?: string
+          programa_status?: string | null
           project_id?: string
           qty_needed?: number | null
           qty_ordered?: number | null
@@ -771,48 +780,66 @@ export type Database = {
       products: {
         Row: {
           brand: string | null
+          colour: string | null
           created_at: string
           default_vendor_id: string | null
           depth_in: number | null
+          depth_text: string | null
+          doc_code: string | null
           finish: string | null
           height_in: number | null
+          height_text: string | null
           id: string
           length_in: number | null
+          length_text: string | null
           material: string | null
           name: string
           sku: string | null
           updated_at: string
           width_in: number | null
+          width_text: string | null
         }
         Insert: {
           brand?: string | null
+          colour?: string | null
           created_at?: string
           default_vendor_id?: string | null
           depth_in?: number | null
+          depth_text?: string | null
+          doc_code?: string | null
           finish?: string | null
           height_in?: number | null
+          height_text?: string | null
           id?: string
           length_in?: number | null
+          length_text?: string | null
           material?: string | null
           name: string
           sku?: string | null
           updated_at?: string
           width_in?: number | null
+          width_text?: string | null
         }
         Update: {
           brand?: string | null
+          colour?: string | null
           created_at?: string
           default_vendor_id?: string | null
           depth_in?: number | null
+          depth_text?: string | null
+          doc_code?: string | null
           finish?: string | null
           height_in?: number | null
+          height_text?: string | null
           id?: string
           length_in?: number | null
+          length_text?: string | null
           material?: string | null
           name?: string
           sku?: string | null
           updated_at?: string
           width_in?: number | null
+          width_text?: string | null
         }
         Relationships: [
           {

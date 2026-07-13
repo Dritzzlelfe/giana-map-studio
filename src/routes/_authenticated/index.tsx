@@ -75,9 +75,6 @@ function MatrixPage() {
               <h1 className="font-display text-4xl tracking-tight text-foreground">
                 {data.rooms[0] ? "Candida Smith" : "Project"}
               </h1>
-              <div className="mt-2 text-sm text-muted-foreground">
-                Le plan complet, en un regard.
-              </div>
               <hr className="brass-rule mt-5" />
             </header>
 

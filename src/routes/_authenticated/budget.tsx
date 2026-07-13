@@ -78,9 +78,6 @@ function BudgetPage() {
                 </span>
               )}
             </div>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Les <em>fees</em> suivent l'axe catégorie de leur item ; les fees projet (sans catégorie) comptent en construction par défaut.
-            </p>
           </div>
 
 

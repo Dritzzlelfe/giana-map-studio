@@ -70,7 +70,7 @@ function DashboardPage() {
             <HeroBand
               eyebrow={`En chantier · ${data.rooms.length} pièces`}
               title="Candida Residence"
-              lede="Le tableau de bord réunit chiffres, cadences et logistique — sans jamais inventer un paiement."
+              
               right={
                 <div className="hidden gap-6 md:flex">
                   <HeroStat label="Committed" value={totals.committed} count={totals.committedCount} />

@@ -1,90 +1,73 @@
-# Pass éditorial "Atelier feutré"
+## What the test showed
 
-Objectif : rendre l'app désirable sans toucher à la logique métier (RLS, `*_visible`, `budgetMath`, mutations). Seulement présentation, tokens, iconographie, imagerie.
+Playwright a rendu Dashboard, Rooms, Matrix, Approvals, Budget, Cashflow, Logistics et Schedule sur trois écrans (390, 820, 1440). Résultat :
 
-## 1. Système visuel (src/styles.css + __root.tsx)
-
-- **Typo** : pair Cormorant Garamond (display serif, headings + hero numerals) + Libre Franklin (body/UI, déjà en place). Chargée via `<link>` Google Fonts dans `src/routes/__root.tsx` head. Tokens `--font-display: "Cormorant Garamond"` / `--font-sans: "Libre Franklin"`.
-- **Palette confirmée** : cream `#efe9e1`, sand `#d9cfc0`, walnut `#5a4a3a`, brass `#c9a84c`. Mise à jour de `--background`, `--surface-sand`, `--foreground`, `--primary` (walnut), nouveau `--accent-brass`, `--accent-brass-soft`.
-- **Textures & profondeur** : hairlines à `color-mix(walnut 12%)`, `--shadow-editorial: 0 20px 40px -24px rgba(90,74,58,0.25)`, papier subtle (SVG grain optionnel en `background-image` sur `body`).
-- **Utilities** ajoutées : `.brass-rule` (filet 1px brass 30%), `.editorial-eyebrow` (petites capitales walnut + brass dot), `.serif-num` (Cormorant + tabular).
-
-## 2. Iconographie unifiée
-
-Nouveau `src/components/ui/CategoryIcon.tsx` : map `categoryKey → Lucide icon` avec `strokeWidth={1.25}`, tailles `sm|md|lg`.
-
-```text
-plumbing  → Droplets       tile        → Grid3x3
-upholstery→ Armchair       drapery     → Curtains (lucide) / Blinds
-lighting  → Lamp            hardware    → Wrench
-kitchen   → ChefHat         furniture   → Sofa
-art       → Frame           millwork    → Hammer
-logistics → Truck           budget      → Wallet
-payments  → Banknote        approvals   → CheckCheck
-schedule  → CalendarRange   fees        → Percent
+```
+                       mobile (390)   tablet (820)   desktop (1440)
+/dashboard             +738 px         +308 px        0
+/approvals             +738 px         +308 px        0
+/budget                +738 px         +308 px        0
+/cashflow              +738 px         +308 px        0
+/logistics             +738 px         +308 px        0
+/schedule              +738 px         +308 px        0
+/rooms                 0               0              0
+/matrix                0               0              0
 ```
 
-Utilisée dans : sidebar shell, entêtes de colonnes matrix, chips de catégories, entêtes de lanes budget, lignes cashflow, colonnes logistics, ItemDrawer header.
+Tous les écrans qui débordent débordent de la même quantité → une seule cause commune (env. 1128 px de largeur imposée), pas dix bugs indépendants.
 
-## 3. Imagerie photographique (assets CDN)
+## Cause principale : la barre de navigation du shell
 
-Génération d'une image par pièce connue via `imagegen--generate_image` (standard, 1536×1024, `.jpg`), ambiance "Atelier feutré" — laiton, chêne, lin, lumière rasante. Puis upload via `lovable-assets create` et pointer `.asset.json` importé en TS.
+Dans `src/components/shell/AppShell.tsx` :
 
-Rooms ciblées (identifiées côté seed) : Living Room, Dining Room, Kitchen, Master Bedroom, Master Bathroom, Powder Room, Guest Bedroom, Study, Entry, Terrace. + 1 hero global "residence".
+- La `<nav>` de 10 liens (Dashboard, Rooms, Matrix, Approvals, Schedule, Budget, Cashflow, Logistics, Mind map, Admin) est en `flex items-center` sans `flex-wrap` ni scroll.
+- Elle est enfant d'un container `flex flex-wrap` avec `mx-auto max-w-[1600px] px-8`. La `<nav>` a une largeur intrinsèque ~1100 px + logo + email + boutons → force la ligne à environ 1128 px et pousse tout l'`<html>` en scroll horizontal.
+- `/rooms` et `/matrix` ne débordent pas parce qu'ils enveloppent leur contenu principal dans un scroll interne qui masque le débordement, mais la vraie fuite reste dans le header.
 
-Nouveau module `src/lib/roomHero.ts` : `heroFor(roomSlug) → url | null` avec fallback gradient walnut→brass si pas d'image.
+Effets visibles (captures) :
+- Mobile Dashboard : la nav est coupée après « Matrix », l'utilisateur ne voit pas Approvals/Budget/Cashflow/Logistics.
+- Mobile Budget/Cashflow/Logistics : mêmes symptômes, plus des tableaux qui forcent un scroll horizontal de page (au lieu d'un scroll local dans la carte).
+- Tablet (820 px) : même débordement, la nav mange encore la ligne.
 
-## 4. Écrans redessinés
+## Ce que je propose de corriger
 
-### Dashboard (`_authenticated/dashboard.tsx`)
-- Bandeau hero photographique full-bleed (18rem) avec titre serif "Candida Residence" + eyebrow brass ("En chantier · 12 pièces").
-- 3 KPI cards en grille éditoriale : Spend, Gap, Payments this month — nombres en Cormorant 48px, label micro caps, filet laiton.
-- Section "Chantiers" (3-col) avec ic (...)ône Lucide + titre + progress bar walnut/brass, cliquable.
-- Empty states dignes (illustration Lucide grande + phrase serif).
+### 1. Shell responsive (fichier `src/components/shell/AppShell.tsx`)
 
-### Matrix (`_authenticated/index.tsx`)
-- Corner cell renforcé : logo/nom projet en serif + micro caps "Rooms".
-- Colonnes : icône catégorie 14px + label micro caps, filet brass au hover de colonne (via `:has`).
-- Dots statut agrandis, halo subtle. Sticky corner z-index déjà OK depuis fix précédent.
+- Mobile (`< md`) : remplacer la nav pleine par un bouton hamburger qui ouvre un `Sheet` (déjà dans le kit) contenant la liste verticale des liens visibles, avec les mêmes icônes et l'état actif brass.
+- Tablet (`md`) : garder la nav horizontale mais la mettre dans un conteneur `overflow-x-auto` avec `scroll-snap` et masquer la scrollbar — jamais de débordement à l'échelle du document.
+- Header row : `min-w-0` sur les blocs texte (logo/email/preview banner), `shrink-0` sur les icônes, email tronqué en une seule ligne, badge « Previewing as… » collapsé en pastille + tooltip sur mobile.
+- Bouton logout : garder l'icône seule, déjà OK.
 
-### Room detail (`room.$roomId.tsx`)
-- Hero 40vh avec image de pièce, gradient wash bas walnut→transparent, breadcrumb Rooms / <Room> en clair sur photo, KPIs superposés en bas (items, spend, gap).
-- Tab strip catégories avec icônes.
-- Sections `<Card>` refondues : header serif + eyebrow + filet brass.
+### 2. Pages qui « fuient » latéralement (même après le fix du shell)
 
-### Budget (`budget.tsx`)
-- Header serif "Budget" + eyebrow "Signed budgets · gap live".
-- Lanes en cards éditoriales avec ic (...)ône catégorie, barre de progression walnut/brass, chiffres serif tabular.
-- Fees rappel en note discrète : *fees suivent l'axe catégorie de leur item ; fees projet (sans catégorie) comptent en construction par défaut* (commentaire code + tooltip UI).
+Après avoir tué la source header, il reste des zones dont les grilles ont un intrinsic min-width trop grand. Passer les corrections suivantes :
 
-### Cashflow (`cashflow.tsx`)
-- Timeline verticale avec pastilles laiton par mois, montants en serif, empty state grand (icône Banknote + "Aucun paiement enregistré").
+- `dashboard.tsx` : la grille de 3 cartes KPI descend en `grid-cols-1` sur `< sm`, `sm:grid-cols-3` reste. Le hero garde son image, mais on force le titre en `text-3xl` sur mobile et le padding en `p-4`.
+- `logistics.tsx` : le kanban `md:grid-cols-3 xl:grid-cols-5` doit rester scrollable horizontalement dans son propre conteneur sur mobile (`overflow-x-auto` + colonnes en `min-w-[220px]`), pas via le scroll de la page. Les onglets « Board / France manifest / Install day / Parties » enveloppés dans `overflow-x-auto`. Les tableaux `manifest`/`install` déjà en `overflow-x-auto` — vérifier `min-w` cohérent.
+- `budget.tsx` : la barre de titre + boutons passe en `flex-col sm:flex-row`. Les cartes de lane (Construction / FF&E) déjà OK, mais la table « Per-unit rates » a des `<input>` qui poussent : contraindre en `min-w-0 w-full` et scroller au niveau de la table.
+- `cashflow.tsx` : header actions (`Cash call`, `Add payment`) en `flex-wrap`, la timeline reste centrée. Les cartes montant/serif-num forcées en `truncate` (les colonnes deviennent une seule colonne sur mobile).
+- `approvals.tsx`, `schedule.tsx` : header en `flex-col sm:flex-row`, listes en 1 colonne mobile.
 
-### Logistics (`logistics.tsx`)
-- Colonnes kanban : titre serif + icône Truck/Ship/Package/Home, compteur brass.
-- Cartes : thumbnail carrée (image de pièce si `room_id`, sinon initiales), poignée `GripVertical` walnut, drapeau `delivery_address_pending` en pastille clay.
+### 3. Détail commun à toutes les pages
 
-### AppShell (`components/shell/AppShell.tsx`)
-- Sidebar : logo wordmark serif "Giana", nav items avec icônes catégorie, item actif = filet vertical brass 2px + fond cream.
-- Topbar : breadcrumb serif, cloche notifications discrète.
+- Ajouter un utilitaire `.page-scroll` (déjà présent via `overflow-auto` sur les containers d'AppShell) et vérifier qu'aucun descendant ne casse `min-w-0`. Règle : chaque flex/grid contenant du texte doit avoir `min-w-0` sur les enfants texte et `shrink-0` sur les icônes.
+- `ItemDrawer` (Sheet) : passer le contenu en `w-full sm:max-w-lg` au lieu d'une largeur figée si elle existe.
+- `HeroBand` : forcer `object-cover` + hauteurs mobile plus douces (`h-[38vh] sm:h-[48vh]`), titre `text-3xl sm:text-5xl`.
 
-## 5. Ordre d'exécution
-1. Tokens + fonts + utilities dans styles.css + __root head.
-2. `CategoryIcon` + `roomHero` helpers.
-3. Génération assets pièces (10 images) + upload CDN en parallèle.
-4. AppShell + Dashboard.
-5. Matrix + Room detail.
-6. Budget + Cashflow + Logistics.
-7. Vérification build + revue visuelle sur chaque route.
+### 4. Ce que je ne touche pas
 
-## Garde-fous
-- Aucune migration, aucune modif de `*_visible`, `budgetMath`, mutations, RLS, GRANT.
-- Aucun nombre inventé : tous les chiffres viennent des hooks existants ; empty states quand vide.
-- Exports client-only inchangés.
-- Fallback iconographique et image (jamais de cassure si catégorie/pièce inconnue).
+- La logique métier (`budgetMath`, RLS, server functions, mutations, calculs, `items_visible`), les types, les migrations, les policies.
+- Les URLs, la navigation TanStack, les rôles/rights.
+- Aucun changement de design system (palette, typo, tokens).
 
-## Détails techniques
-- Google Fonts chargé via `<link rel="stylesheet">` dans `head()` de `__root.tsx` (jamais `@import` URL dans styles.css).
-- Assets images : `imagegen--generate_image` → `/tmp/rooms/<slug>.jpg` → `lovable-assets create --file` → pointer `src/assets/rooms/<slug>.jpg.asset.json`, import JSON, `img.url`.
-- Aucun `text-white`/`bg-black` hardcodé : uniquement tokens sémantiques.
-- Animations : `animate-fade-in` sur cartes, `hover-scale` sur thumbnails (utilitaires déjà présents).
+## Comment je vérifie
+
+- Après implémentation, relancer le script Playwright sur les mêmes 8 routes × 3 viewports.
+- Critère de succès : `overflow=0px` partout, captures mobiles où toute la nav est atteignable et où aucune page n'a de barre de scroll horizontale au niveau `<html>`.
+- Screenshots avant/après sauvegardés dans `/tmp/browser/resp/` pour comparaison.
+
+## Notes techniques
+
+- 738 px = 1128 − 390 (mobile) et 308 = 1128 − 820 (tablet) → même largeur imposée, confirme la cause unique côté header.
+- Les erreurs SSR-hydration observées (« A tree hydrated but some attributes… ») ne sont pas liées au responsive et sortent du périmètre de ce plan.
+- Les avertissements de type « React state update on a component that hasn't mounted yet » viennent probablement de `useHydrated` non gardé sur une page — hors périmètre également, à traiter séparément si tu veux.

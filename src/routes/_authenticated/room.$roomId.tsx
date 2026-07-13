@@ -26,6 +26,7 @@ function RoomPage() {
   const { data, isLoading, error } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
   const uploadRoomImage = useUploadRoomImage();
+  const deleteRoomImage = useDeleteRoomImage();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const room = data?.roomById[roomId] ?? null;

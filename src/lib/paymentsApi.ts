@@ -17,9 +17,19 @@ export type Payment = {
 
 // READ through the masking view.
 export async function fetchPaymentsForItem(itemId: string): Promise<Payment[]> {
-  const { data, error } = await (
-    supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> }
-  )
+  const client = supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        eq: (col: string, val: string) => {
+          order: (
+            col: string,
+            opts: { ascending: boolean; nullsFirst: boolean },
+          ) => Promise<{ data: Payment[] | null; error: { message: string } | null }>;
+        };
+      };
+    };
+  };
+  const { data, error } = await client
     .from("payments_visible")
     .select("*")
     .eq("item_id", itemId)
@@ -27,6 +37,7 @@ export async function fetchPaymentsForItem(itemId: string): Promise<Payment[]> {
   if (error) throw error;
   return (data ?? []) as Payment[];
 }
+
 
 // WRITE to the base table (RLS enforces cashflow edit right).
 export async function createPayment(

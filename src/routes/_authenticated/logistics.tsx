@@ -147,14 +147,19 @@ function LogisticsPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Truck className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-          <h2 className="font-display text-lg font-semibold">Logistics</h2>
-          <span className="ml-2 text-xs text-muted-foreground">
-            Drag cards between columns, or use each card's "Move to…".
-          </span>
-        </div>
+      <div className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
+            <div className="editorial-eyebrow mb-2">France · Mississippi · Résidence</div>
+            <div className="flex items-center gap-3">
+              <Truck className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
+              <h1 className="font-display text-3xl tracking-tight">Logistique</h1>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Faites glisser les cartes entre colonnes, ou utilisez « Move to… » sur chaque carte.
+            </p>
+          </div>
+
 
         {isLoading && (
           <div className="text-muted-foreground">

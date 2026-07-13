@@ -590,7 +590,7 @@ function RoomRow({
               setEditing(true);
             }}
           >
-            {row.target != null ? fmt(row.target) : "— set"}
+            {row.target != null ? fmt(row.target) : "Définir"}
           </button>
         )}
       </td>

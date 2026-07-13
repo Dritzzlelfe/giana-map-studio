@@ -39,6 +39,11 @@ const COLUMNS: { id: string | null; label: string }[] = [
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
+  const [draggingItem, setDraggingItem] = useState<Item | null>(null);
+  const update = useUpdateItem();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
 
   const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
 
@@ -53,6 +58,23 @@ function LogisticsPage() {
     return map;
   }, [items]);
 
+  const handleDragStart = (e: DragStartEvent) => {
+    const id = String(e.active.id);
+    setDraggingItem(items.find((i) => i.id === id) ?? null);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setDraggingItem(null);
+    if (!e.over) return;
+    const itemId = String(e.active.id);
+    const overCol = String(e.over.id);
+    const newLoc = overCol === "__unset" ? null : overCol;
+    const it = items.find((i) => i.id === itemId);
+    if (!it) return;
+    if ((it.logistics_location ?? null) === newLoc) return;
+    update.mutate({ id: itemId, patch: { logistics_location: newLoc } });
+  };
+
   return (
     <AppShell>
       <div className="flex-1 overflow-auto p-6">
@@ -60,7 +82,7 @@ function LogisticsPage() {
           <Truck className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
           <h2 className="font-display text-lg font-semibold">Logistics</h2>
           <span className="ml-2 text-xs text-muted-foreground">
-            Drag-and-drop deferred — use each card's "Move to…" for now.
+            Drag cards between columns, or use each card's "Move to…".
           </span>
         </div>
 
@@ -85,22 +107,38 @@ function LogisticsPage() {
               </TabsList>
 
               <TabsContent value="board" className="mt-4">
-                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
-                  {COLUMNS.map((col) => {
-                    const key = col.id ?? "__unset";
-                    const rows = byColumn.get(key) ?? [];
-                    return (
-                      <BoardColumn
-                        key={key}
-                        label={col.label}
-                        items={rows}
-                        data={data}
-                        onEdit={setEditing}
-                      />
-                    );
-                  })}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragCancel={() => setDraggingItem(null)}
+                >
+                  <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+                    {COLUMNS.map((col) => {
+                      const key = col.id ?? "__unset";
+                      const rows = byColumn.get(key) ?? [];
+                      return (
+                        <BoardColumn
+                          key={key}
+                          columnId={key}
+                          label={col.label}
+                          items={rows}
+                          data={data}
+                          onEdit={setEditing}
+                        />
+                      );
+                    })}
+                  </div>
+                  <DragOverlay>
+                    {draggingItem && (
+                      <div className="rounded border bg-card p-2 text-xs shadow-lg opacity-95">
+                        <div className="font-medium truncate">{draggingItem.title}</div>
+                      </div>
+                    )}
+                  </DragOverlay>
+                </DndContext>
               </TabsContent>
+
 
               <TabsContent value="manifest" className="mt-4">
                 <ManifestTable

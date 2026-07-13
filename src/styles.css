@@ -183,8 +183,6 @@
   font-size: 10.5px;
   font-weight: 600;
   color: var(--walnut);
-}
-@utility editorial-eyebrow {
   &::before {
     content: "";
     display: inline-block;

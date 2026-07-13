@@ -28,6 +28,7 @@ function monthKey(d: string) {
 
 function DashboardPage() {
   const { data, isLoading, error } = useItemsData();
+  const { data: payments = [] } = useAllPayments();
   const [editing, setEditing] = useState<Item | null>(null);
 
   const todo = useMemo(
@@ -38,22 +39,12 @@ function DashboardPage() {
 
   const totals = useMemo(() => projectSpend(data?.items ?? []), [data]);
 
-  const cashflow = useMemo(() => {
-    const months = new Map<
-      string,
-      { client_owes: number; gad_owes: number; balance_due: number }
-    >();
-    for (const it of data?.items ?? []) {
-      if (!it.delivery_date) continue;
-      const k = monthKey(it.delivery_date);
-      const row = months.get(k) ?? { client_owes: 0, gad_owes: 0, balance_due: 0 };
-      if (!it.client_paid_gad) row.client_owes += it.client_price ?? 0;
-      if (!it.gad_paid_vendor) row.gad_owes += it.gad_cost ?? 0;
-      row.balance_due += it.balance_due_on_delivery ?? 0;
-      months.set(k, row);
-    }
-    return [...months.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [data]);
+  // Real cashflow card — driven by payments_visible (not fabricated from item
+  // statuses). Same math as the /cashflow route.
+  const cashCard = useMemo(
+    () => dashboardCashCard(payments as PaymentWithMeta[]),
+    [payments],
+  );
 
   const logisticsGroups = useMemo(() => {
     const groups: Record<string, Item[]> = {};

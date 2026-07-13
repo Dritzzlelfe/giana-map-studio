@@ -5,6 +5,7 @@ import {
   deletePayment,
   fetchPaymentsForItem,
   updatePayment,
+  type NewPayment,
   type Payment,
 } from "./paymentsApi";
 
@@ -21,11 +22,12 @@ export function usePaymentsForItem(itemId: string | null | undefined) {
 export function useCreatePayment(itemId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (patch: Omit<Payment, "id" | "created_at" | "updated_at">) => createPayment(patch),
+    mutationFn: (patch: NewPayment) => createPayment(patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: paymentsQK(itemId) }),
     onError: (e: Error) => toast.error(`Couldn't add payment: ${e.message}`),
   });
 }
+
 
 export function useUpdatePayment(itemId: string) {
   const qc = useQueryClient();
@@ -57,10 +59,13 @@ export function derivePaymentTotals(
   payments: Payment[],
   itemDeliveryDate: string | null,
 ): PaymentDerived {
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
+  const src = payments.filter((p) => p.confirmed && !p.dismissed);
   let hasMasked = false;
   const each = (arr: Payment[]) => {
     let sum = 0;
     let any = false;
+
     for (const p of arr) {
       if (p.amount == null) {
         hasMasked = true;
@@ -72,7 +77,7 @@ export function derivePaymentTotals(
     return any ? sum : 0;
   };
   const clientDueOnDelivery = each(
-    payments.filter(
+    src.filter(
       (p) =>
         p.direction === "client_to_gad" &&
         p.state !== "paid" &&
@@ -81,8 +86,9 @@ export function derivePaymentTotals(
     ),
   );
   const gadOwesVendor = each(
-    payments.filter((p) => p.direction === "gad_to_vendor" && p.state !== "paid"),
+    src.filter((p) => p.direction === "gad_to_vendor" && p.state !== "paid"),
   );
-  const invoicedToClient = each(payments.filter((p) => p.direction === "client_to_gad"));
+  const invoicedToClient = each(src.filter((p) => p.direction === "client_to_gad"));
+
   return { clientDueOnDelivery, gadOwesVendor, invoicedToClient, hasMasked };
 }

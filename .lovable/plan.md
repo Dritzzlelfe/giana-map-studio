@@ -1,73 +1,106 @@
-## What the test showed
+# M4-bis — Financial reconciliation import & validation (revised)
 
-Playwright a rendu Dashboard, Rooms, Matrix, Approvals, Budget, Cashflow, Logistics et Schedule sur trois écrans (390, 820, 1440). Résultat :
+Bring 42 QuickBooks payment records in as **pending** rows and let Giana/Abe confirm them inside a dedicated screen. Golden rule: **no unconfirmed payment enters any total, ever.**
 
+## 1. Migration (single idempotent file)
+
+`ALTER TABLE public.payments`:
+
+- `ALTER COLUMN item_id DROP NOT NULL` — a payment can attach to an item, a vendor, or an invoice (Roche Bobois' 60% covers 26 items).
+- `ADD COLUMN IF NOT EXISTS vendor_id uuid REFERENCES vendors(id)`
+- `ADD COLUMN IF NOT EXISTS invoice_num text`
+- `ADD COLUMN IF NOT EXISTS description text`
+- `ADD COLUMN IF NOT EXISTS confirmed boolean NOT NULL DEFAULT false`
+- `ADD COLUMN IF NOT EXISTS confirmed_by uuid REFERENCES profiles(id)`
+- `ADD COLUMN IF NOT EXISTS confirmed_at timestamptz`
+- `ADD COLUMN IF NOT EXISTS source text` — `'manual' | 'reconciliation_import' | 'reconciliation_derived'`
+- `ADD COLUMN IF NOT EXISTS dismissed boolean NOT NULL DEFAULT false`
+- `CHECK (item_id IS NOT NULL OR vendor_id IS NOT NULL)`
+- Backfill existing rows: `confirmed = true`, `source = 'manual'` so nothing already visible disappears.
+
+### Grants (M1-B whitelist pattern — non-money only)
+
+```sql
+GRANT SELECT (vendor_id, invoice_num, description, confirmed,
+              confirmed_by, confirmed_at, source, dismissed)
+  ON public.payments TO authenticated;
 ```
-                       mobile (390)   tablet (820)   desktop (1440)
-/dashboard             +738 px         +308 px        0
-/approvals             +738 px         +308 px        0
-/budget                +738 px         +308 px        0
-/cashflow              +738 px         +308 px        0
-/logistics             +738 px         +308 px        0
-/schedule              +738 px         +308 px        0
-/rooms                 0               0              0
-/matrix                0               0              0
+
+`amount` stays revoked. Never add it to any grant.
+
+### Do NOT touch `payments_visible`
+
+No `CREATE OR REPLACE`, no `DROP`, no recreation. It keeps masking `amount` exactly as it does today. The M1 leak came from flipping a `*_visible` view to `security_invoker` and granting money — we are not going near that when we don't have to.
+
+### Assertion in the same migration (fail-closed)
+
+```sql
+DO $$
+BEGIN
+  IF has_column_privilege('authenticated','public.payments','amount','SELECT') THEN
+    RAISE EXCEPTION 'payments.amount is SELECT-able by authenticated — abort';
+  END IF;
+END $$;
 ```
 
-Tous les écrans qui débordent débordent de la même quantité → une seule cause commune (env. 1128 px de largeur imposée), pas dix bugs indépendants.
+RLS, `enforce_money_write`, `app_private.*`, and every other `*_visible` view stay untouched. `confirmed` is a **separate axis** from `state` — never a fourth state value.
 
-## Cause principale : la barre de navigation du shell
+## 2. Read path — merge pattern (same as `notes` today)
 
-Dans `src/components/shell/AppShell.tsx` :
+In `paymentsApi.ts`, extend both `fetchAllPayments` and `fetchPaymentsForItem` to select the new non-money columns from the **base** `payments` table and merge them onto the rows returned by `payments_visible` — identical to the current `notes` merge. `amount` continues to come exclusively from the view.
 
-- La `<nav>` de 10 liens (Dashboard, Rooms, Matrix, Approvals, Schedule, Budget, Cashflow, Logistics, Mind map, Admin) est en `flex items-center` sans `flex-wrap` ni scroll.
-- Elle est enfant d'un container `flex flex-wrap` avec `mx-auto max-w-[1600px] px-8`. La `<nav>` a une largeur intrinsèque ~1100 px + logo + email + boutons → force la ligne à environ 1128 px et pousse tout l'`<html>` en scroll horizontal.
-- `/rooms` et `/matrix` ne débordent pas parce qu'ils enveloppent leur contenu principal dans un scroll interne qui masque le débordement, mais la vraie fuite reste dans le header.
+Add to the `Payment` type: `vendor_id`, `invoice_num`, `description`, `confirmed`, `confirmed_by`, `confirmed_at`, `source`, `dismissed`. Propagate into `PaymentWithMeta`.
 
-Effets visibles (captures) :
-- Mobile Dashboard : la nav est coupée après « Matrix », l'utilisateur ne voit pas Approvals/Budget/Cashflow/Logistics.
-- Mobile Budget/Cashflow/Logistics : mêmes symptômes, plus des tableaux qui forcent un scroll horizontal de page (au lieu d'un scroll local dans la carte).
-- Tablet (820 px) : même débordement, la nav mange encore la ligne.
+## 3. Golden rule in `src/lib/budgetMath.ts` (single source)
 
-## Ce que je propose de corriger
+Every consumer filters `p.confirmed === true && !p.dismissed` at the top:
 
-### 1. Shell responsive (fichier `src/components/shell/AppShell.tsx`)
+- `pivotPayments`, `reservedTotal`, `upcomingSorted`, `dashboardCashCard`
+- `derivePaymentTotals` in `usePayments.ts` (item drawer totals)
 
-- Mobile (`< md`) : remplacer la nav pleine par un bouton hamburger qui ouvre un `Sheet` (déjà dans le kit) contenant la liste verticale des liens visibles, avec les mêmes icônes et l'état actif brass.
-- Tablet (`md`) : garder la nav horizontale mais la mettre dans un conteneur `overflow-x-auto` avec `scroll-snap` et masquer la scrollbar — jamais de débordement à l'échelle du document.
-- Header row : `min-w-0` sur les blocs texte (logo/email/preview banner), `shrink-0` sur les icônes, email tronqué en une seule ligne, badge « Previewing as… » collapsé en pastille + tooltip sur mobile.
-- Bouton logout : garder l'icône seule, déjà OK.
+## 4. Importer — `scripts/import_reconciliation.mjs`
 
-### 2. Pages qui « fuient » latéralement (même après le fix du shell)
+Same skeleton as `import_programa.mjs`: one transaction, `set_config('request.jwt.claims', ...)` to impersonate a full-visibility owner (import passes THROUGH `enforce_money_write`), deterministic ids from `payment_id`, `ON CONFLICT (id) DO NOTHING`, validation-then-rollback.
 
-Après avoir tué la source header, il reste des zones dont les grilles ont un intrinsic min-width trop grand. Passer les corrections suivantes :
+Per row: resolve `vendor_name` → `vendors.id` (create if missing — expected: **Blinds To Go**, **Osborne & Little**); insert `(id=payment_id, item_id, vendor_id, invoice_num, description, amount, direction, state, confirmed, due_date, source, phase_id=NULL, dismissed=false)`.
 
-- `dashboard.tsx` : la grille de 3 cartes KPI descend en `grid-cols-1` sur `< sm`, `sm:grid-cols-3` reste. Le hero garde son image, mais on force le titre en `text-3xl` sur mobile et le padding en `p-4`.
-- `logistics.tsx` : le kanban `md:grid-cols-3 xl:grid-cols-5` doit rester scrollable horizontalement dans son propre conteneur sur mobile (`overflow-x-auto` + colonnes en `min-w-[220px]`), pas via le scroll de la page. Les onglets « Board / France manifest / Install day / Parties » enveloppés dans `overflow-x-auto`. Les tableaux `manifest`/`install` déjà en `overflow-x-auto` — vérifier `min-w` cohérent.
-- `budget.tsx` : la barre de titre + boutons passe en `flex-col sm:flex-row`. Les cartes de lane (Construction / FF&E) déjà OK, mais la table « Per-unit rates » a des `<input>` qui poussent : contraindre en `min-w-0 w-full` et scroller au niveau de la table.
-- `cashflow.tsx` : header actions (`Cash call`, `Add payment`) en `flex-wrap`, la timeline reste centrée. Les cartes montant/serif-num forcées en `truncate` (les colonnes deviennent une seule colonne sur mobile).
-- `approvals.tsx`, `schedule.tsx` : header en `flex-col sm:flex-row`, listes en 1 colonne mobile.
+Expected report before commit (rollback on any drift):
 
-### 3. Détail commun à toutes les pages
+- 42 rows total
+- 19 `gad_to_vendor / paid / confirmed=true / reconciliation_import` → **$132,974.67**
+- 19 `client_to_gad / due / confirmed=false / reconciliation_import` across invoices **00304, 00308, 00309, 00310, 00312, 00313, 00315** → **$223,541.37**
+- 4 `client_to_gad / due / confirmed=false / due_date=NULL / reconciliation_derived` → **$95,698.18** (Muretti 50%, Roche Bobois 40%, Wuxi 50%, Better Tex 50%)
 
-- Ajouter un utilitaire `.page-scroll` (déjà présent via `overflow-auto` sur les containers d'AppShell) et vérifier qu'aucun descendant ne casse `min-w-0`. Règle : chaque flex/grid contenant du texte doit avoir `min-w-0` sur les enfants texte et `shrink-0` sur les icônes.
-- `ItemDrawer` (Sheet) : passer le contenu en `w-full sm:max-w-lg` au lieu d'une largeur figée si elle existe.
-- `HeroBand` : forcer `object-cover` + hauteurs mobile plus douces (`h-[38vh] sm:h-[48vh]`), titre `text-3xl sm:text-5xl`.
+Wire into `scripts/README.md`.
 
-### 4. Ce que je ne touche pas
+## 5. Reconciliation screen — new tab in `/cashflow`
 
-- La logique métier (`budgetMath`, RLS, server functions, mutations, calculs, `items_visible`), les types, les migrations, les policies.
-- Les URLs, la navigation TanStack, les rôles/rights.
-- Aucun changement de design system (palette, typo, tokens).
+New `<TabsTrigger value="reconciliation">` in `src/routes/_authenticated/cashflow.tsx`, rendered **only** when `profile.role.money_visibility === 'full'`. Masked roles cannot see it (and RLS on `amount` blocks the reads anyway).
 
-## Comment je vérifie
+Content:
 
-- Après implémentation, relancer le script Playwright sur les mêmes 8 routes × 3 viewports.
-- Critère de succès : `overflow=0px` partout, captures mobiles où toute la nav est atteignable et où aucune page n'a de barre de scroll horizontale au niveau `<html>`.
-- Screenshots avant/après sauvegardés dans `/tmp/browser/resp/` pour comparaison.
+- **Banner** (when unconfirmed rows exist): `"N payments awaiting confirmation — not counted in any total until confirmed."`
+- **"Needs attention"** card:
+  - **Derived** — any vendor with payments but zero items in the schedule. Computed from `items` + `payments` on the client; will keep flagging future imports (Osborne & Little today).
+  - **Static note** — Roche Bobois schedule $61,388.44 vs implied contract $65,441.12 (Δ $4,052.68).
+- **Groups**, in order:
+  1. One panel per invoice number (00304, 00308, 00309, 00310, 00312, 00313, 00315) — header row with bulk actions **Confirm invoice as paid**, **Confirm as due**, **Assign phase**.
+  2. **Derived balances** (4 rows). Confirm action **requires a due date** (modal) — these become Kimberly's cash calls. Description shown verbatim.
+  3. **Confirmed vendor payments** (collapsed by default, informational).
+- **Per row**: date · description · vendor · amount · direction · state, plus **Confirm as paid**, **Confirm as due**, **Edit** (amount/date/phase), **Dismiss** (`dismissed=true`; row stays visible with an "excluded" badge).
 
-## Notes techniques
+Confirm writes: `confirmed=true`, `confirmed_by=auth.uid()`, `confirmed_at=now()`, chosen `state`. Small `confirmPayments(ids, patch)` bulk helper in `paymentsApi.ts`.
 
-- 738 px = 1128 − 390 (mobile) et 308 = 1128 − 820 (tablet) → même largeur imposée, confirme la cause unique côté header.
-- Les erreurs SSR-hydration observées (« A tree hydrated but some attributes… ») ne sont pas liées au responsive et sortent du périmètre de ce plan.
-- Les avertissements de type « React state update on a component that hasn't mounted yet » viennent probablement de `useHydrated` non gardé sur une page — hors périmètre également, à traiter séparément si tu veux.
+## 6. Verification
+
+- Pre-confirmation: `/cashflow` Month/Phase pivots, Reserved panel, Upcoming list, Dashboard cash card, cash-call print — client lane = **$0**; vendor lane shows the 19 confirmed = $132,974.67.
+- Confirm-all: client lane totals **$223,541.37**; dated derived balances appear in Upcoming.
+- Re-run importer → 0 inserts.
+- Masked role: reconciliation tab hidden; `payments_visible.amount` still `NULL`; direct `SELECT amount FROM payments` still denied (migration assertion covers this).
+- `bun run test:security` green.
+
+## Non-goals / do not touch
+
+- `payments_visible` (no recreation).
+- RLS policies, `enforce_money_write`, `app_private.*`, any grant on `amount`, any other `*_visible` view.
+- No role-rights widening. Confirming is a non-money write; if a `client_assistant` is ever granted `cashflow:edit`, they can confirm without seeing amounts — that's an intentional Kimberly-style workflow, not a bug to "helpfully" close.

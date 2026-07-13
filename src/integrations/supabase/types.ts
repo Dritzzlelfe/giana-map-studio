@@ -663,41 +663,72 @@ export type Database = {
       payments: {
         Row: {
           amount: number | null
+          confirmed: boolean
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string
+          description: string | null
           direction: string
+          dismissed: boolean
           due_date: string | null
           id: string
-          item_id: string
+          invoice_num: string | null
+          item_id: string | null
           notes: string | null
           phase_id: string | null
+          source: string | null
           state: string
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           amount?: number | null
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
+          description?: string | null
           direction: string
+          dismissed?: boolean
           due_date?: string | null
           id?: string
-          item_id: string
+          invoice_num?: string | null
+          item_id?: string | null
           notes?: string | null
           phase_id?: string | null
+          source?: string | null
           state: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           amount?: number | null
+          confirmed?: boolean
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string
+          description?: string | null
           direction?: string
+          dismissed?: boolean
           due_date?: string | null
           id?: string
-          item_id?: string
+          invoice_num?: string | null
+          item_id?: string | null
           notes?: string | null
           phase_id?: string | null
+          source?: string | null
           state?: string
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_item_id_fkey"
             columns: ["item_id"]
@@ -717,6 +748,13 @@ export type Database = {
             columns: ["phase_id"]
             isOneToOne: false
             referencedRelation: "phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]

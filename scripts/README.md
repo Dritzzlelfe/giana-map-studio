@@ -29,3 +29,25 @@ occurrence gets a stable derived id so no row is lost while idempotency holds.
 At the end it prints a validation report (per-room counts, project-level
 count, fee count, total client price) and rolls back if any figure drifts
 from the expected values (181 items / 153 products / $700,637.79).
+
+## `import_reconciliation.mjs` (M4-bis)
+
+One-shot importer for the QuickBooks reconciliation extract. Rows land
+UNCONFIRMED (`confirmed = false`) so nothing enters any total until Giana/Abe
+validate each row in the **Réconciliation** tab of `/cashflow`.
+
+```
+node scripts/import_reconciliation.mjs [path-to-json]
+# default path: /mnt/user-uploads/gad_payments_import.json
+```
+
+Same skeleton as `import_programa.mjs` (single transaction, jwt-claim
+impersonation, deterministic ids, `ON CONFLICT DO NOTHING`). Validation
+report before commit; rollback on any drift. Expected shape:
+
+- 42 rows total
+- 19 vendor / paid / confirmed → $132,974.67
+- 19 client / due / unconfirmed across invoices 00304, 00308, 00309,
+  00310, 00312, 00313, 00315 → $223,541.37
+- 4 derived contract-balance rows (unconfirmed, no due date) → $95,698.18
+

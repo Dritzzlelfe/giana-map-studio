@@ -45,7 +45,7 @@ import {
 import { useMediaForProduct, useMediaForItem, useUploadItemPhoto, useDeleteItemPhoto } from "@/lib/mediaApi";
 import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import { LIFECYCLE_STAGES, checkTransition, isOption, type LifecycleStage } from "@/lib/lifecycle";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

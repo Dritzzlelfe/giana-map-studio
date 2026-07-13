@@ -6,6 +6,7 @@ import { rollupStatus, countOptions, isVisibleInGrid, type Category, type Item, 
 import { StatusDot } from "@/components/items/StatusDot";
 import { CellPanel } from "@/components/items/CellPanel";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/")({

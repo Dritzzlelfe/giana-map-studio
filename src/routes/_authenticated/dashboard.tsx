@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
@@ -6,7 +6,8 @@ import { useItemsData } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";
-import { projectSpend } from "@/lib/budgetMath";
+import { projectSpend, dashboardCashCard, type PaymentWithMeta } from "@/lib/budgetMath";
+import { useAllPayments } from "@/lib/useAllPayments";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Project Map" }] }),

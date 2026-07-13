@@ -353,11 +353,13 @@ function BoardCard({
   data,
   onEdit,
   currentLocation,
+  photoUrl,
 }: {
   item: Item;
   data: LoadedData;
   onEdit: (i: Item) => void;
   currentLocation: string;
+  photoUrl?: string;
 }) {
   const update = useUpdateItem();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });

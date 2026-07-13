@@ -42,6 +42,8 @@ export type Item = {
   room_id: string | null;
   category_id: string | null;
   vendor_id: string | null;
+  product_id: string | null;
+
   title: string;
   description: string | null;
   sku: string | null;

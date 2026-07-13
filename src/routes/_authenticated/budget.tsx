@@ -339,7 +339,7 @@ function BudgetCard({
           }}
           disabled={!canEdit}
         >
-          {value != null ? fmt(value) : "— set budget"}
+          {value != null ? fmt(value) : "Définir"}
         </button>
       )}
     </div>

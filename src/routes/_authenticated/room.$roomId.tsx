@@ -63,7 +63,7 @@ function RoomPage() {
                   uploadRoomImage.mutate(
                     { roomId: room.id, file },
                     {
-                      onSuccess: () => toast.success("Image mise à jour"),
+                      onSuccess: () => toast.success("Image updated"),
                       onError: (err: Error) => toast.error(err.message),
                     },
                   );
@@ -81,7 +81,7 @@ function RoomPage() {
                   ) : (
                     <ImagePlus className="h-3.5 w-3.5" />
                   )}
-                  Changer l'image
+                  Change image
                 </button>
                 {room.image_url && (
                   <button
@@ -90,14 +90,14 @@ function RoomPage() {
                       deleteRoomImage.mutate(
                         { roomId: room.id, fileUrl: room.image_url },
                         {
-                          onSuccess: () => toast.success("Image supprimée"),
+                          onSuccess: () => toast.success("Image removed"),
                           onError: (err: Error) => toast.error(err.message),
                         },
                       )
                     }
                     disabled={deleteRoomImage.isPending}
                     className="inline-flex items-center gap-1.5 rounded-sm border border-[color:var(--cream)]/30 bg-black/40 px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[color:var(--cream)] backdrop-blur transition-colors hover:bg-black/60 disabled:opacity-60"
-                    aria-label="Supprimer l'image"
+                    aria-label="Remove image"
                   >
                     {deleteRoomImage.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -126,7 +126,7 @@ function RoomPage() {
                   />
                   <Link to="/room" className="hover:text-[color:var(--accent-brass)]">Rooms</Link>
                   <span aria-hidden>/</span>
-                  <span>{room.plan_name ?? "Pièce"}</span>
+                  <span>{room.plan_name ?? "Room"}</span>
                 </div>
                 <h1 className="font-display text-4xl leading-none tracking-tight text-[color:var(--cream)]">
                   {room.name}
@@ -134,7 +134,7 @@ function RoomPage() {
                 {(room.ceiling_height || room.width || room.length) && (
                   <div className="mt-2 text-sm text-[color:var(--sand)]">
                     {[room.width, room.length].filter(Boolean).join(" × ")}
-                    {room.ceiling_height && ` · ${room.ceiling_height} de hauteur`}
+                    {room.ceiling_height && ` · ${room.ceiling_height} ceiling`}
                   </div>
                 )}
               </div>
@@ -143,7 +143,7 @@ function RoomPage() {
 
           <div className="mx-auto max-w-[1600px] p-6 lg:p-8">
             <div className="mb-6 flex flex-wrap items-center gap-1.5">
-              <span className="label-micro mr-2">Naviguer</span>
+              <span className="label-micro mr-2">Navigate</span>
               {data.rooms.map((r) => (
                 <Link
                   key={r.id}
@@ -175,7 +175,7 @@ function RoomPage() {
                 <ContractorDirections room={room} items={data.items} data={data} />
 
                 <div className="mb-4 mt-2 flex items-baseline gap-3">
-                  <div className="editorial-eyebrow">Par catégorie</div>
+                  <div className="editorial-eyebrow">By category</div>
                   <h2 className="font-display text-2xl tracking-tight">Items</h2>
                 </div>
                 {data.categories.map((c) => {

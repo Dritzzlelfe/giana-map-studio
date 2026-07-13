@@ -99,13 +99,13 @@ function CashflowPage() {
       <div className="flex-1 overflow-auto p-6 lg:p-8">
         <div className="mx-auto max-w-[1600px]">
           <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
-            <div className="editorial-eyebrow mb-2">Trésorerie · réel uniquement</div>
+            <div className="editorial-eyebrow mb-2">Cash · actuals only</div>
             <div className="flex flex-wrap items-center gap-3">
               <Banknote className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
               <h1 className="font-display text-3xl tracking-tight">Cashflow</h1>
               {money === "none" && (
                 <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
-                  Montants masqués par votre rôle
+                  Amounts hidden by your role
                 </span>
               )}
               <div className="ml-auto flex gap-2">
@@ -136,7 +136,7 @@ function CashflowPage() {
               <TabsTrigger value="cashflow">Cashflow</TabsTrigger>
               {money === "full" && (
                 <TabsTrigger value="reconciliation">
-                  Réconciliation
+                  Reconciliation
                   {pendingCount > 0 && (
                     <Badge variant="outline" className="ml-2">
                       {pendingCount}
@@ -226,10 +226,10 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
         strokeWidth={1.25}
       />
       <h3 className="font-display text-2xl tracking-tight text-foreground">
-        Aucun paiement enregistré
+        No payments recorded
       </h3>
       <Button className="mt-6" onClick={onAdd}>
-        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Ajouter un premier paiement
+        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add a first payment
       </Button>
     </div>
   );
@@ -459,7 +459,7 @@ function PhaseSelect({
         <SelectValue placeholder="—" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NULL_VAL}>Non planifié</SelectItem>
+        <SelectItem value={NULL_VAL}>Unscheduled</SelectItem>
         {phases.map((p) => (
           <SelectItem key={p.id} value={p.id}>
             {p.name} ({p.axis === "ffe" ? "FF&E" : "Construction"})
@@ -629,7 +629,7 @@ function AddPaymentDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NULL_VAL}>Non planifié</SelectItem>
+                  <SelectItem value={NULL_VAL}>Unscheduled</SelectItem>
                   {phases.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name} ({p.axis === "ffe" ? "FF&E" : "Construction"})

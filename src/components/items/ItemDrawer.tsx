@@ -505,7 +505,7 @@ function ProductIdentityBlock({ productId }: { productId: string | null }) {
   return (
     <Section
       label="Product identity"
-      hint="Partagé entre projets"
+      hint="Shared across projects"
     >
       {!product ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -863,7 +863,7 @@ function ItemPhotoUploader({ itemId }: { itemId: string }) {
         <div className="text-xs text-muted-foreground">Loading…</div>
       ) : photos.length === 0 ? (
         <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-4 text-center text-xs text-muted-foreground">
-          Aucune photo.
+          No photos.
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">

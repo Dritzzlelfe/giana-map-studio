@@ -335,7 +335,7 @@ function BudgetCard({
           }}
           disabled={!canEdit}
         >
-          {value != null ? fmt(value) : "Définir"}
+          {value != null ? fmt(value) : "Set"}
         </button>
       )}
     </div>
@@ -590,7 +590,7 @@ function RoomRow({
               setEditing(true);
             }}
           >
-            {row.target != null ? fmt(row.target) : "Définir"}
+            {row.target != null ? fmt(row.target) : "Set"}
           </button>
         )}
       </td>

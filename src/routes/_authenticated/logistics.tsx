@@ -206,6 +206,7 @@ function LogisticsPage() {
                           items={rows}
                           data={data}
                           onEdit={setEditing}
+                          photoMap={photoMap}
                         />
                       );
                     })}

@@ -86,6 +86,7 @@ function DashboardPage() {
                 value={totals.committed}
                 masked={totals.hasMaskedCommitted}
                 count={totals.committedCount}
+                to="/budget"
               />
               <Metric
                 icon={Users2}
@@ -93,6 +94,7 @@ function DashboardPage() {
                 value={totals.options}
                 masked={totals.hasMaskedOptions}
                 count={totals.optionsCount}
+                to="/approvals"
               />
               <Metric
                 icon={Banknote}
@@ -104,6 +106,7 @@ function DashboardPage() {
                 }
                 masked={totals.hasMaskedCommitted || totals.hasMaskedOptions}
                 count={totals.committedCount + totals.optionsCount}
+                to="/budget"
               />
             </section>
             {(totals.hasMaskedCommitted || totals.hasMaskedOptions) && (

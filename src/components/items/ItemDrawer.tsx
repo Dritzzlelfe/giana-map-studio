@@ -42,7 +42,7 @@ import {
   usePaymentsForItem,
   derivePaymentTotals,
 } from "@/lib/usePayments";
-import { useMediaForProduct } from "@/lib/mediaApi";
+import { useMediaForProduct, useMediaForItem, useUploadItemPhoto, useDeleteItemPhoto } from "@/lib/mediaApi";
 import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import { LIFECYCLE_STAGES, checkTransition, isOption, type LifecycleStage } from "@/lib/lifecycle";
 import { useState } from "react";

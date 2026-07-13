@@ -971,6 +971,7 @@ export type Database = {
           ceiling_height: string | null
           created_at: string
           id: string
+          image_url: string | null
           length: string | null
           name: string
           notes: string | null
@@ -986,6 +987,7 @@ export type Database = {
           ceiling_height?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           length?: string | null
           name: string
           notes?: string | null
@@ -1001,6 +1003,7 @@ export type Database = {
           ceiling_height?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           length?: string | null
           name?: string
           notes?: string | null

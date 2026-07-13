@@ -177,8 +177,12 @@ async function main() {
     // Upsert products then items.
     let productInserts = 0;
     let itemInserts = 0;
+    const seenItemIds = new Map(); // originalId -> occurrence count
 
     for (const r of rows) {
+      const seen = seenItemIds.get(r.item_id) ?? 0;
+      seenItemIds.set(r.item_id, seen + 1);
+      const itemId = seen === 0 ? r.item_id : derivedItemId(r.item_id, seen);
       const vendorId = await resolveVendor(r.supplier, r.supplier_email);
 
       const pRes = await client.query(

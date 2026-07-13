@@ -17,13 +17,18 @@ import { cn } from "@/lib/utils";
 import {
   DndContext,
   DragOverlay,
+  KeyboardCode,
+  KeyboardSensor,
   PointerSensor,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
+  type Announcements,
   type DragEndEvent,
   type DragStartEvent,
+  type KeyboardCoordinateGetter,
+  type ScreenReaderInstructions,
 } from "@dnd-kit/core";
 
 export const Route = createFileRoute("/_authenticated/logistics")({

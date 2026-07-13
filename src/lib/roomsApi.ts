@@ -5,7 +5,7 @@ import { ITEMS_QK } from "./useItemsData";
 import type { Room } from "./itemsApi";
 
 export type RoomHeaderPatch = Partial<
-  Pick<Room, "name" | "plan_name" | "ceiling_height" | "width" | "length" | "notes">
+  Pick<Room, "name" | "plan_name" | "ceiling_height" | "width" | "length" | "notes" | "image_url">
 > & {
   target_amount?: number | null; // writes to base rooms.target_amount (edit right required)
 };

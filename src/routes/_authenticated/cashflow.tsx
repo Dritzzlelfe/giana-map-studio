@@ -88,6 +88,11 @@ function CashflowPage() {
   const upcoming = useMemo(() => upcomingSorted(enriched), [enriched]);
 
   const isEmpty = payments.length === 0;
+  const pendingCount = useMemo(
+    () => payments.filter((p) => !p.confirmed && !p.dismissed).length,
+    [payments],
+  );
+
 
   return (
     <AppShell>

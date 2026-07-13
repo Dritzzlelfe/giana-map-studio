@@ -52,7 +52,6 @@ function BudgetPage() {
 
   const projectBudget = budgets.find((b) => b.scope === "project") ?? null;
   const roofBudget = budgets.find((b) => b.scope === "roof_deck") ?? null;
-  const roofBudget = budgets.find((b) => b.scope === "roof_deck") ?? null;
 
   // Now that Room exposes project_id, use it for new-budget inserts.
   const anyProjectId =

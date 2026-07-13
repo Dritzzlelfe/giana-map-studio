@@ -242,15 +242,68 @@ function Card({
   title,
   children,
   className,
+  eyebrow,
+  count,
+  icon: Icon,
 }: {
   title: string;
   children: React.ReactNode;
   className?: string;
+  eyebrow?: string;
+  count?: number;
+  icon?: import("lucide-react").LucideIcon;
 }) {
   return (
-    <div className={`rounded-md border bg-card p-4 ${className ?? ""}`}>
-      <h2 className="mb-3 font-display text-base font-semibold">{title}</h2>
+    <div
+      className={`rounded-md border border-[color:var(--rule-soft)] bg-card p-5 shadow-[var(--shadow-cell)] ${className ?? ""}`}
+    >
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          {eyebrow && <div className="editorial-eyebrow mb-1.5">{eyebrow}</div>}
+          <h2 className="flex items-center gap-2 font-display text-xl tracking-tight text-foreground">
+            {Icon && (
+              <Icon
+                className="h-4 w-4 text-[color:var(--accent-brass)]"
+                strokeWidth={1.25}
+              />
+            )}
+            {title}
+          </h2>
+        </div>
+        {count !== undefined && (
+          <span className="serif-num text-2xl text-[color:var(--accent-brass)]">
+            {count}
+          </span>
+        )}
+      </div>
       {children}
+    </div>
+  );
+}
+
+function HeroStat({
+  label,
+  value,
+  count,
+}: {
+  label: string;
+  value: number | null;
+  count: number;
+}) {
+  return (
+    <div className="text-right">
+      <div
+        className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+        style={{ color: "var(--accent-brass-soft)" }}
+      >
+        {label}
+      </div>
+      <div className="serif-num mt-1 text-[32px] leading-none text-[color:var(--cream)]">
+        {value == null ? "—" : fmtMoney(value)}
+      </div>
+      <div className="mt-1 text-[11px] text-[color:var(--sand)]">
+        {count} {count === 1 ? "item" : "items"}
+      </div>
     </div>
   );
 }
@@ -260,22 +313,42 @@ function Metric({
   value,
   masked,
   count,
+  icon: Icon,
 }: {
   label: string;
   value: number | null;
   masked: boolean;
   count: number;
+  icon?: import("lucide-react").LucideIcon;
 }) {
   return (
-    <div className="rounded border bg-muted/20 p-3">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 num-tabular text-2xl font-light tracking-tight">
-        {value == null ? "—" : fmtMoney(value)}
-        {masked && value != null && (
-          <span className="ml-1 text-xs font-normal text-muted-foreground">·  partial</span>
+    <div className="relative overflow-hidden rounded-md border border-[color:var(--rule-soft)] bg-card p-5 shadow-[var(--shadow-cell)]">
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, var(--accent-brass) 0%, transparent 100%)",
+        }}
+      />
+      <div className="flex items-center justify-between">
+        <div className="label-micro">{label}</div>
+        {Icon && (
+          <Icon
+            className="h-4 w-4 text-[color:var(--accent-brass)]"
+            strokeWidth={1.25}
+          />
         )}
       </div>
-      <div className="mt-0.5 text-xs text-muted-foreground">
+      <div className="serif-num mt-3 text-[40px] leading-none text-foreground">
+        {value == null ? "—" : fmtMoney(value)}
+        {masked && value != null && (
+          <span className="ml-2 text-xs font-normal italic text-muted-foreground">
+            partial
+          </span>
+        )}
+      </div>
+      <div className="mt-2 text-xs text-muted-foreground">
         {count} {count === 1 ? "item" : "items"}
       </div>
     </div>

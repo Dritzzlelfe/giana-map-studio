@@ -10,7 +10,7 @@ import { RoomHeader } from "@/components/room/RoomHeader";
 import { BudgetStrip } from "@/components/room/BudgetStrip";
 import { ContractorDirections } from "@/components/room/ContractorDirections";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
-import { useUploadRoomImage } from "@/lib/mediaApi";
+import { useUploadRoomImage, useDeleteRoomImage } from "@/lib/mediaApi";
 import { toast } from "sonner";
 import type { Item } from "@/lib/itemsApi";
 import { isOption } from "@/lib/lifecycle";

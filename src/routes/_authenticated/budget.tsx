@@ -52,22 +52,13 @@ function BudgetPage() {
 
   const projectBudget = budgets.find((b) => b.scope === "project") ?? null;
   const roofBudget = budgets.find((b) => b.scope === "roof_deck") ?? null;
-  const projectId = items?.rooms[0] ? undefined : undefined; // resolved below
+  const roofBudget = budgets.find((b) => b.scope === "roof_deck") ?? null;
 
-  // Every existing budget row has a project_id; use it, else the first item's.
-  const resolvedProjectId =
+  // Now that Room exposes project_id, use it for new-budget inserts.
+  const anyProjectId =
     projectBudget?.project_id ??
     roofBudget?.project_id ??
-    items?.items[0]?.room_id
-      ? undefined
-      : undefined;
-  const anyProjectId =
-    projectBudget?.project_id ||
-    roofBudget?.project_id ||
-    // Fallback: pull from any item's room, then room -> project (we know
-    // rooms have project_id; loadAll doesn't expose it, so we skip and rely
-    // on the DB having at least one budget already, or on the create form
-    // asking. For MVP: block create when no id is available yet.)
+    items?.rooms[0]?.project_id ??
     "";
 
   const [exportRoom, setExportRoom] = useState<string | null>(null);

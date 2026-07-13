@@ -11,6 +11,7 @@ export type Room = {
   width: string | null;
   length: string | null;
   notes: string | null;
+  image_url: string | null;
   // target_amount is deliberately NOT exposed here — money reads only through
   // the `room_targets_visible` view (see useAllRoomTargets / useRoomTarget).
 };

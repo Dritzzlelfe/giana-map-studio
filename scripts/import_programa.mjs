@@ -67,7 +67,7 @@ async function main() {
   if (!Array.isArray(rows)) throw new Error("Expected a top-level JSON array");
   console.log(`Loaded ${rows.length} rows from ${rawPath}`);
 
-  const client = new pg.Client();
+  const client = new pg.Client({ ssl: { rejectUnauthorized: false } });
   await client.connect();
 
   try {

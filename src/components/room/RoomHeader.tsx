@@ -42,7 +42,7 @@ export function RoomHeader({ room }: { room: Room; data: LoadedData }) {
         <Cell label="Ceiling height">
           <Input
             value={local.ceiling_height}
-            placeholder='e.g. 9\' 6"'
+            placeholder="e.g. 9 ft 6 in"
             onChange={(e) => setLocal((s) => ({ ...s, ceiling_height: e.target.value }))}
             onBlur={() =>
               local.ceiling_height !== (room.ceiling_height ?? "") &&

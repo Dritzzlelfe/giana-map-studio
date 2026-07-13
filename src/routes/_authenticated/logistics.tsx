@@ -389,7 +389,7 @@ function BoardCard({
               <div className="min-w-0 flex-1">
                 <div className="font-display text-sm leading-tight">{item.title}</div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">
-                  {category?.name ?? "Uncategorized"}
+                  {category?.label ?? "Uncategorized"}
                 </div>
               </div>
               <StatusBadge status={item.status} />

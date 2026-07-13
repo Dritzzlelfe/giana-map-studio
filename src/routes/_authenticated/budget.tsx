@@ -360,10 +360,7 @@ function RoofDeckCard({
   const committed = roofItems
     .filter((i) => isCommitted(i.status) && i.client_price != null)
     .reduce((s, i) => s + Number(i.client_price), 0);
-  const [showFullMoney] = [money === "full"];
-  const target =
-    (showFullMoney ? budget?.construction_budget ?? null : null) ??
-    (money !== "none" ? budget?.ffe_budget ?? null : null);
+  const target = money === "full" ? (budget?.construction_budget ?? null) : null;
   const g = gap(target, committed);
 
   return (

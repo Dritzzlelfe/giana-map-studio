@@ -505,7 +505,7 @@ function ProductIdentityBlock({ productId }: { productId: string | null }) {
   return (
     <Section
       label="Product identity"
-      hint="Shared across projects — editing here changes it everywhere"
+      hint="Partagé entre projets"
     >
       {!product ? (
         <div className="text-sm text-muted-foreground">Loading…</div>

@@ -11,6 +11,9 @@ export type Payment = {
   state: PaymentState;
   due_date: string | null;
   phase_id: string | null;
+  // Free-text audit trail: phase-move history and manual notes.
+  // Read from base `payments` table (not surfaced by payments_visible).
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };

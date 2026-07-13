@@ -141,32 +141,19 @@ function DashboardPage() {
               </ul>
             </Card>
 
-            <Card title="Budget cashflow (by delivery month)" className="lg:col-span-2">
-              {cashflow.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No dated obligations yet — set delivery dates and money fields on items.
-                </p>
+            <Card title="Cashflow — this month & next" className="lg:col-span-2">
+              {payments.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No payments yet.{" "}
+                  <Link to="/cashflow" className="text-[color:var(--primary)] hover:underline">
+                    Add one in Cashflow →
+                  </Link>
+                </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 text-left">Month</th>
-                      <th className="px-2 py-1 text-right">Client owes GAD</th>
-                      <th className="px-2 py-1 text-right">GAD owes vendors</th>
-                      <th className="px-2 py-1 text-right">Balance due on delivery</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cashflow.map(([month, row]) => (
-                      <tr key={month} className="border-t">
-                        <td className="px-2 py-1.5 font-medium">{month}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.client_owes)}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.gad_owes)}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.balance_due)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CashBucket label="This month" bucket={cashCard.thisMonth} />
+                  <CashBucket label="Next month" bucket={cashCard.nextMonth} />
+                </div>
               )}
             </Card>
 

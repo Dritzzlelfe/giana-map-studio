@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical } from "lucide-react";
+import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical, Calendar, Hash, Store, Clock, Home } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
@@ -12,6 +12,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
@@ -346,6 +348,12 @@ function BoardCard({
 }) {
   const update = useUpdateItem();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
+  const category = item.category_id ? data.categoryById[item.category_id] : null;
+  const room = item.room_id ? data.roomById[item.room_id] : null;
+  const vendor = item.vendor_id ? data.vendorById[item.vendor_id] : null;
+  const deliveryDate = item.delivery_date
+    ? new Date(item.delivery_date).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })
+    : null;
   return (
     <div
       ref={setNodeRef}
@@ -354,7 +362,7 @@ function BoardCard({
         isDragging && "opacity-40",
       )}
     >
-      <div className="flex items-start gap-1">
+      <div className="flex items-start gap-1.5">
         <button
           type="button"
           className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
@@ -364,16 +372,81 @@ function BoardCard({
         >
           <GripVertical className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
-        <button className="flex-1 text-left hover:underline" onClick={() => onEdit(item)}>
+        <HoverCard openDelay={120} closeDelay={80}>
+          <HoverCardTrigger asChild>
+            <div
+              aria-hidden
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]"
+            >
+              <CategoryIcon categoryKey={category?.key} className="h-4 w-4" />
+            </div>
+          </HoverCardTrigger>
+          <HoverCardContent align="start" side="right" className="w-72 p-3">
+            <div className="flex items-start gap-2">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]">
+                <CategoryIcon categoryKey={category?.key} className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-display text-sm leading-tight">{item.title}</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">
+                  {category?.label ?? "Uncategorized"}
+                </div>
+              </div>
+              <StatusBadge status={item.status} />
+            </div>
+            <div className="mt-3 space-y-1.5 text-[11px]">
+              {room && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Home className="h-3 w-3" strokeWidth={1.5} />
+                  <span className="text-foreground">{room.name}</span>
+                </div>
+              )}
+              {vendor && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Store className="h-3 w-3" strokeWidth={1.5} />
+                  <span className="text-foreground">{vendor.name}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <MapPin className="h-3 w-3" strokeWidth={1.5} />
+                <span className="text-foreground">{currentLocation}</span>
+              </div>
+              {(item.qty_ordered != null || item.qty_needed != null) && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Hash className="h-3 w-3" strokeWidth={1.5} />
+                  <span className="text-foreground">
+                    {item.qty_ordered ?? 0} / {item.qty_needed ?? 0}
+                  </span>
+                </div>
+              )}
+              {deliveryDate && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar className="h-3 w-3" strokeWidth={1.5} />
+                  <span className="text-foreground">{deliveryDate}</span>
+                </div>
+              )}
+              {item.lead_time && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="h-3 w-3" strokeWidth={1.5} />
+                  <span className="text-foreground">{item.lead_time}</span>
+                </div>
+              )}
+              {item.sku && (
+                <div className="text-muted-foreground">
+                  SKU · <span className="text-foreground">{item.sku}</span>
+                </div>
+              )}
+            </div>
+          </HoverCardContent>
+        </HoverCard>
+        <button className="flex-1 min-w-0 text-left hover:underline" onClick={() => onEdit(item)}>
           <div className="flex items-start justify-between gap-1">
             <span className="font-medium truncate">{item.title}</span>
             <StatusBadge status={item.status} />
           </div>
-          <div className="mt-0.5 text-muted-foreground">
-            {item.room_id ? data.roomById[item.room_id]?.name : "—"}
-            {item.vendor_id && (
-              <span> · {data.vendorById[item.vendor_id]?.name}</span>
-            )}
+          <div className="mt-0.5 truncate text-muted-foreground">
+            {room?.name ?? "—"}
+            {vendor && <span> · {vendor.name}</span>}
           </div>
         </button>
       </div>

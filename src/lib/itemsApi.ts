@@ -86,7 +86,8 @@ export type LoadedData = {
 // Non-money columns of items — the ONLY columns readable directly from
 // public.items by authenticated. Money columns are read through items_visible.
 const ITEM_WRITE_RETURN_COLS =
-  "id, room_id, category_id, vendor_id, title, description, sku, design_placement, qty_needed, qty_ordered, status, priority, ordered_by, installer, lead_time, delivery_address, delivery_date, storage_name, storage_address, logistics_location, option_source, client_paid_gad, gad_paid_vendor, created_at, updated_at";
+  "id, room_id, category_id, vendor_id, product_id, title, description, sku, design_placement, qty_needed, qty_ordered, status, priority, ordered_by, installer, lead_time, delivery_address, delivery_address_pending, delivery_date, storage_name, storage_address, logistics_location, option_source, client_paid_gad, gad_paid_vendor, created_at, updated_at";
+
 
 export async function loadAll(): Promise<LoadedData> {
   const [r, c, v, p, i] = await Promise.all([

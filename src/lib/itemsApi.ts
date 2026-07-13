@@ -5,7 +5,13 @@ export type Room = {
   name: string;
   sort_order: number;
   active: boolean;
+  plan_name: string | null;
+  ceiling_height: string | null;
+  width: string | null;
+  length: string | null;
+  notes: string | null;
 };
+
 
 export type Category = {
   id: string;
@@ -49,7 +55,9 @@ export type Item = {
   lead_time: string | null;
   delivery_address: string | null;
   delivery_date: string | null;
+  delivery_address_pending: boolean;
   storage_name: string | null;
+
   storage_address: string | null;
   logistics_location: string | null;
   option_source: string | null;

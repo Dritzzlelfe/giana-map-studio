@@ -150,7 +150,8 @@ export async function createItem(patch: Partial<Item> & { title: string }): Prom
 export async function updateItem(id: string, patch: Partial<Item>): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
-    .update(patch)
+    .update(patch as never)
+
     .eq("id", id)
     .select(ITEM_WRITE_RETURN_COLS)
     .single();

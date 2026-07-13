@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Loader2, ImagePlus } from "lucide-react";
+import { Loader2, ImagePlus, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import heroAsset from "@/assets/hero-atelier.jpg.asset.json";
 import { useItemsData } from "@/lib/useItemsData";

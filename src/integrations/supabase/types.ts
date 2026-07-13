@@ -84,6 +84,7 @@ export type Database = {
           id: string
           per_unit_rates: Json
           project_id: string
+          scope: string
           updated_at: string
         }
         Insert: {
@@ -93,6 +94,7 @@ export type Database = {
           id?: string
           per_unit_rates?: Json
           project_id: string
+          scope?: string
           updated_at?: string
         }
         Update: {
@@ -102,13 +104,14 @@ export type Database = {
           id?: string
           per_unit_rates?: Json
           project_id?: string
+          scope?: string
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "budgets_project_id_fkey"
             columns: ["project_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -116,6 +119,7 @@ export type Database = {
       }
       categories: {
         Row: {
+          axis: string | null
           created_at: string
           id: string
           key: string
@@ -124,6 +128,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          axis?: string | null
           created_at?: string
           id?: string
           key: string
@@ -132,6 +137,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          axis?: string | null
           created_at?: string
           id?: string
           key?: string
@@ -662,6 +668,7 @@ export type Database = {
           due_date: string | null
           id: string
           item_id: string
+          notes: string | null
           phase_id: string | null
           state: string
           updated_at: string
@@ -673,6 +680,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           item_id: string
+          notes?: string | null
           phase_id?: string | null
           state: string
           updated_at?: string
@@ -684,6 +692,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           item_id?: string
+          notes?: string | null
           phase_id?: string | null
           state?: string
           updated_at?: string
@@ -1082,7 +1091,7 @@ export type Database = {
           {
             foreignKeyName: "budgets_project_id_fkey"
             columns: ["project_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },

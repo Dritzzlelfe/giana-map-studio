@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Room = {
   id: string;
+  project_id: string;
   name: string;
   sort_order: number;
   active: boolean;
@@ -10,6 +11,8 @@ export type Room = {
   width: string | null;
   length: string | null;
   notes: string | null;
+  // target_amount is deliberately NOT exposed here — money reads only through
+  // the `room_targets_visible` view (see useAllRoomTargets / useRoomTarget).
 };
 
 
@@ -18,6 +21,10 @@ export type Category = {
   key: string;
   label: string;
   sort_order: number;
+  // Budget axis: 'construction' | 'ffe'. Fees follow their item's category
+  // axis; project-level fees (no category) count toward 'construction' by
+  // default — see budgetMath.axisOf.
+  axis: "construction" | "ffe" | null;
 };
 
 export type Vendor = {

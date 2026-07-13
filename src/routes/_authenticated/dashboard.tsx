@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
@@ -6,7 +6,8 @@ import { useItemsData } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";
-import { projectSpend } from "@/lib/budgetMath";
+import { projectSpend, dashboardCashCard, type PaymentWithMeta } from "@/lib/budgetMath";
+import { useAllPayments } from "@/lib/useAllPayments";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Project Map" }] }),
@@ -27,6 +28,7 @@ function monthKey(d: string) {
 
 function DashboardPage() {
   const { data, isLoading, error } = useItemsData();
+  const { data: payments = [] } = useAllPayments();
   const [editing, setEditing] = useState<Item | null>(null);
 
   const todo = useMemo(
@@ -37,22 +39,12 @@ function DashboardPage() {
 
   const totals = useMemo(() => projectSpend(data?.items ?? []), [data]);
 
-  const cashflow = useMemo(() => {
-    const months = new Map<
-      string,
-      { client_owes: number; gad_owes: number; balance_due: number }
-    >();
-    for (const it of data?.items ?? []) {
-      if (!it.delivery_date) continue;
-      const k = monthKey(it.delivery_date);
-      const row = months.get(k) ?? { client_owes: 0, gad_owes: 0, balance_due: 0 };
-      if (!it.client_paid_gad) row.client_owes += it.client_price ?? 0;
-      if (!it.gad_paid_vendor) row.gad_owes += it.gad_cost ?? 0;
-      row.balance_due += it.balance_due_on_delivery ?? 0;
-      months.set(k, row);
-    }
-    return [...months.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [data]);
+  // Real cashflow card — driven by payments_visible (not fabricated from item
+  // statuses). Same math as the /cashflow route.
+  const cashCard = useMemo(
+    () => dashboardCashCard(payments as PaymentWithMeta[]),
+    [payments],
+  );
 
   const logisticsGroups = useMemo(() => {
     const groups: Record<string, Item[]> = {};
@@ -149,32 +141,19 @@ function DashboardPage() {
               </ul>
             </Card>
 
-            <Card title="Budget cashflow (by delivery month)" className="lg:col-span-2">
-              {cashflow.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No dated obligations yet — set delivery dates and money fields on items.
-                </p>
+            <Card title="Cashflow — this month & next" className="lg:col-span-2">
+              {payments.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No payments yet.{" "}
+                  <Link to="/cashflow" className="text-[color:var(--primary)] hover:underline">
+                    Add one in Cashflow →
+                  </Link>
+                </div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
-                    <tr>
-                      <th className="px-2 py-1 text-left">Month</th>
-                      <th className="px-2 py-1 text-right">Client owes GAD</th>
-                      <th className="px-2 py-1 text-right">GAD owes vendors</th>
-                      <th className="px-2 py-1 text-right">Balance due on delivery</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cashflow.map(([month, row]) => (
-                      <tr key={month} className="border-t">
-                        <td className="px-2 py-1.5 font-medium">{month}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.client_owes)}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.gad_owes)}</td>
-                        <td className="px-2 py-1.5 text-right">{fmtMoney(row.balance_due)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <CashBucket label="This month" bucket={cashCard.thisMonth} />
+                  <CashBucket label="Next month" bucket={cashCard.nextMonth} />
+                </div>
               )}
             </Card>
 
@@ -263,6 +242,47 @@ function Metric({
       </div>
       <div className="mt-0.5 text-xs text-muted-foreground">
         {count} {count === 1 ? "item" : "items"}
+      </div>
+    </div>
+  );
+}
+
+function CashBucket({
+  label,
+  bucket,
+}: {
+  label: string;
+  bucket: { client: { total: number; count: number; masked: boolean }; vendor: { total: number; count: number; masked: boolean } };
+}) {
+  return (
+    <div className="rounded border bg-muted/20 p-3">
+      <div className="label-micro">{label}</div>
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <Lane title="Client → GAD" lane={bucket.client} />
+        <Lane title="GAD → Vendor" lane={bucket.vendor} />
+      </div>
+    </div>
+  );
+}
+
+function Lane({
+  title,
+  lane,
+}: {
+  title: string;
+  lane: { total: number; count: number; masked: boolean };
+}) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{title}</div>
+      <div className="num-tabular text-lg font-light">
+        {lane.count === 0 ? "—" : fmtMoney(lane.total)}
+        {lane.masked && lane.count > 0 && (
+          <span className="ml-1 text-xs italic text-muted-foreground">· partial</span>
+        )}
+      </div>
+      <div className="text-[10px] text-muted-foreground">
+        {lane.count} {lane.count === 1 ? "payment" : "payments"}
       </div>
     </div>
   );

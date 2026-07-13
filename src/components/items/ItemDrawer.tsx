@@ -698,6 +698,7 @@ function MoneyBlock({
                   state: st,
                   due_date: due || null,
                   phase_id: null,
+                  notes: null,
                 });
                 setAmt("");
                 setDue("");

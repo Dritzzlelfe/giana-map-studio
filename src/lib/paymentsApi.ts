@@ -11,31 +11,52 @@ export type Payment = {
   state: PaymentState;
   due_date: string | null;
   phase_id: string | null;
+  // Free-text audit trail: phase-move history and manual notes.
+  // Read from base `payments` table (not surfaced by payments_visible).
+  notes: string | null;
   created_at: string;
   updated_at: string;
 };
 
-// READ through the masking view.
+// READ money through the masking view; merge non-money `notes` from base.
 export async function fetchPaymentsForItem(itemId: string): Promise<Payment[]> {
-  const client = supabase as unknown as {
-    from: (t: string) => {
-      select: (c: string) => {
-        eq: (col: string, val: string) => {
-          order: (
-            col: string,
-            opts: { ascending: boolean; nullsFirst: boolean },
-          ) => Promise<{ data: Payment[] | null; error: { message: string } | null }>;
-        };
-      };
-    };
-  };
-  const { data, error } = await client
-    .from("payments_visible")
-    .select("*")
-    .eq("item_id", itemId)
-    .order("due_date", { ascending: true, nullsFirst: false });
-  if (error) throw error;
-  return (data ?? []) as Payment[];
+  const [visible, base] = await Promise.all([
+    supabase
+      .from("payments_visible" as never)
+      .select("*")
+      .eq("item_id", itemId)
+      .order("due_date", { ascending: true, nullsFirst: false }),
+    supabase.from("payments").select("id, notes").eq("item_id", itemId),
+  ]);
+  if (visible.error) throw visible.error;
+  if (base.error) throw base.error;
+  const notesById = new Map<string, string | null>(
+    ((base.data ?? []) as { id: string; notes: string | null }[]).map((x) => [x.id, x.notes]),
+  );
+  return ((visible.data ?? []) as Payment[]).map((p) => ({
+    ...p,
+    notes: notesById.get(p.id) ?? null,
+  }));
+}
+
+// Global fetch for the cashflow view. Same masking + notes merge pattern.
+export async function fetchAllPayments(): Promise<Payment[]> {
+  const [visible, base] = await Promise.all([
+    supabase
+      .from("payments_visible" as never)
+      .select("*")
+      .order("due_date", { ascending: true, nullsFirst: false }),
+    supabase.from("payments").select("id, notes"),
+  ]);
+  if (visible.error) throw visible.error;
+  if (base.error) throw base.error;
+  const notesById = new Map<string, string | null>(
+    ((base.data ?? []) as { id: string; notes: string | null }[]).map((x) => [x.id, x.notes]),
+  );
+  return ((visible.data ?? []) as Payment[]).map((p) => ({
+    ...p,
+    notes: notesById.get(p.id) ?? null,
+  }));
 }
 
 

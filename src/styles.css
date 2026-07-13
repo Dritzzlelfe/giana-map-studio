@@ -149,14 +149,49 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, .font-display {
+  h1, h2, h3, .font-display, .font-serif {
     font-family: var(--font-display);
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: -0.005em;
   }
-  h1 { font-weight: 300; }
-  h2 { font-weight: 400; }
+  h1 { font-weight: 400; letter-spacing: -0.015em; }
+  h2 { font-weight: 400; letter-spacing: -0.01em; }
   h3 { font-weight: 500; }
+}
+
+@utility serif-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+@utility brass-rule {
+  background: linear-gradient(90deg, var(--accent-brass) 0%, color-mix(in oklab, var(--accent-brass) 30%, transparent) 100%);
+  height: 1px;
+  width: 100%;
+  border: 0;
+}
+
+@utility editorial-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--walnut);
+}
+@utility editorial-eyebrow {
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    background: var(--accent-brass);
+  }
 }
 
 @utility num-tabular {

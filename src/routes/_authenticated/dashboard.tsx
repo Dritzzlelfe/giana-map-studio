@@ -35,6 +35,8 @@ function DashboardPage() {
   );
   const asap = useMemo(() => (data?.items ?? []).filter((i) => i.priority === "asap"), [data]);
 
+  const totals = useMemo(() => projectSpend(data?.items ?? []), [data]);
+
   const cashflow = useMemo(() => {
     const months = new Map<
       string,

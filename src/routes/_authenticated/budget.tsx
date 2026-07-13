@@ -439,10 +439,11 @@ function AxisTables({
   data: LoadedData;
   onExport: (roomId: string) => void;
 }) {
+  const { data: targets } = useAllRoomTargets();
   return (
     <section className="grid gap-4 lg:grid-cols-2">
-      <AxisTable axis="construction" data={data} onExport={onExport} />
-      <AxisTable axis="ffe" data={data} onExport={onExport} />
+      <AxisTable axis="construction" data={data} targets={targets} onExport={onExport} />
+      <AxisTable axis="ffe" data={data} targets={targets} onExport={onExport} />
     </section>
   );
 }
@@ -450,15 +451,16 @@ function AxisTables({
 function AxisTable({
   axis,
   data,
+  targets,
   onExport,
 }: {
   axis: Axis;
   data: LoadedData;
+  targets: Map<string, number | null> | undefined;
   onExport: (roomId: string) => void;
 }) {
   const updateRoom = useUpdateRoom();
   const projectLevel = useMemo(() => {
-    // Filter items to just this axis, then project-level (no room).
     return projectLevelSpend(
       data.items.filter((i) => {
         const c = i.category_id ? data.categoryById[i.category_id] : undefined;
@@ -496,10 +498,11 @@ function AxisTable({
         </thead>
         <tbody>
           {data.rooms.map((r) => {
+            const target = targets?.get(r.id) ?? null;
             const row: BudgetRoomRow = roomBudgetRow(
               data.items,
               r.id,
-              r.target_amount ?? null,
+              target,
               data.categoryById,
               axis,
             );

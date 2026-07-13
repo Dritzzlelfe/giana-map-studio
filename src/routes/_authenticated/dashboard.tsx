@@ -74,6 +74,39 @@ function DashboardPage() {
       {data && (
         <div className="flex-1 overflow-auto p-5">
           <div className="grid gap-4 lg:grid-cols-2">
+            <Card title="Project totals" className="lg:col-span-2">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Metric
+                  label="Committed"
+                  value={totals.committed}
+                  masked={totals.hasMaskedCommitted}
+                  count={totals.committedCount}
+                />
+                <Metric
+                  label="Options"
+                  value={totals.options}
+                  masked={totals.hasMaskedOptions}
+                  count={totals.optionsCount}
+                />
+                <Metric
+                  label="Total (committed + options)"
+                  value={
+                    totals.committed != null && totals.options != null
+                      ? totals.committed + totals.options
+                      : null
+                  }
+                  masked={totals.hasMaskedCommitted || totals.hasMaskedOptions}
+                  count={totals.committedCount + totals.optionsCount}
+                />
+              </div>
+              {(totals.hasMaskedCommitted || totals.hasMaskedOptions) && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Some money values are hidden by your role — totals shown exclude masked rows.
+                </p>
+              )}
+            </Card>
+
+
             <Card title={`ASAP (${asap.length})`}>
               <ItemList items={asap} data={data} onEdit={setEditing} />
             </Card>

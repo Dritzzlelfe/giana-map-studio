@@ -350,7 +350,7 @@ function BoardCard({
         <button
           type="button"
           className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-          aria-label="Drag to move"
+          aria-label={`Drag ${item.title} between columns. Currently in ${currentLocation}.`}
           {...listeners}
           {...attributes}
         >

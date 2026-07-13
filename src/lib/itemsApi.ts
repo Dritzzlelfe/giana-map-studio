@@ -68,6 +68,9 @@ export type Item = {
   client_paid_gad: boolean;
   gad_paid_vendor: boolean;
   balance_due_on_delivery: number | null;
+  is_fee: boolean;
+  programa_status: string | null;
+  import_source: string | null;
   created_at: string;
   updated_at: string;
 };

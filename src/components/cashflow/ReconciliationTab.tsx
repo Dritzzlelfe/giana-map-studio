@@ -47,7 +47,7 @@ function fmt(n: number | null | undefined) {
 
 // Static note flagged by the spec — figure discrepancy on Roche Bobois.
 const ROCHE_STATIC_NOTE =
-  "Roche Bobois — le planning totalise $61,388.44, mais l'acompte 60% de $39,264.67 implique un contrat de $65,441.12 (Δ $4,052.68).";
+  "Roche Bobois — schedule totals $61,388.44, but the 60% deposit of $39,264.67 implies a $65,441.12 contract (Δ $4,052.68).";
 
 export function ReconciliationTab({
   payments,
@@ -106,7 +106,7 @@ export function ReconciliationTab({
     for (const p of payments) {
       if (!p.vendor_id) continue;
       if (itemVendorIds.has(p.vendor_id)) continue;
-      const vname = data.vendorById[p.vendor_id]?.name ?? "Inconnu";
+      const vname = data.vendorById[p.vendor_id]?.name ?? "Unknown";
       const cur = totals.get(p.vendor_id) ?? { vendor: vname, total: 0, count: 0 };
       cur.total += Number(p.amount ?? 0);
       cur.count += 1;
@@ -137,23 +137,23 @@ export function ReconciliationTab({
         <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4 text-sm">
           <div className="flex items-center gap-2 font-medium">
             <AlertTriangle className="h-4 w-4 text-amber-600" strokeWidth={1.5} />
-            {pending.length} paiement{pending.length > 1 ? "s" : ""} en attente de confirmation
+            {pending.length} payment{pending.length > 1 ? "s" : ""} awaiting confirmation
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Aucun de ces paiements n'entre dans les totaux tant qu'il n'est pas confirmé.
+            None of these payments count toward totals until confirmed.
           </p>
         </div>
       )}
 
       {(vendorAnomalies.length > 0 || true) && (
         <section className="rounded-md border bg-card p-4">
-          <h3 className="mb-2 font-display text-base font-semibold">À vérifier</h3>
+          <h3 className="mb-2 font-display text-base font-semibold">Needs review</h3>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {vendorAnomalies.map((a) => (
               <li key={a.vendor}>
                 <span className="font-medium text-foreground">{a.vendor}</span> — {fmt(a.total)}{" "}
-                sur {a.count} paiement{a.count > 1 ? "s" : ""}. Ce fournisseur n'apparaît nulle
-                part dans le planning.
+                across {a.count} payment{a.count > 1 ? "s" : ""}. This vendor doesn't appear
+                anywhere in the schedule.
               </li>
             ))}
             <li>{ROCHE_STATIC_NOTE}</li>
@@ -183,11 +183,11 @@ export function ReconciliationTab({
       {derived.length > 0 && (
         <section className="rounded-md border bg-card p-4">
           <h3 className="mb-2 font-display text-base font-semibold">
-            Soldes contractuels dérivés ({derived.length})
+            Derived contract balances ({derived.length})
           </h3>
           <p className="mb-3 text-xs text-muted-foreground">
-            Ces soldes sont énoncés dans les factures (50%/40% restant). Confirmer nécessite
-            d'assigner une échéance — c'est ce qui les rend appelables auprès du client.
+            These balances are stated in the invoices (50% / 40% remaining). Confirming requires
+            assigning a due date — that's what makes them callable to the client.
           </p>
           <ul className="divide-y text-sm">
             {derived.map((p) => (
@@ -196,7 +196,7 @@ export function ReconciliationTab({
                   <div className="min-w-0 flex-1">
                     <div className="font-medium">{p.description ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">
-                      {data.vendorById[p.vendor_id ?? ""]?.name ?? "Vendor inconnu"} · {fmt(Number(p.amount ?? 0))}
+                      {data.vendorById[p.vendor_id ?? ""]?.name ?? "Unknown vendor"} · {fmt(Number(p.amount ?? 0))}
                     </div>
                   </div>
                   <div className="flex flex-shrink-0 gap-2">
@@ -206,7 +206,7 @@ export function ReconciliationTab({
                       className="h-7 text-xs"
                       onClick={() => setDerivedConfirmTarget(p)}
                     >
-                      Confirmer & dater
+                      Confirm & date
                     </Button>
                     <Button
                       size="sm"
@@ -214,7 +214,7 @@ export function ReconciliationTab({
                       className="h-7 text-xs"
                       onClick={() => updateMut.mutate({ id: p.id, patch: { dismissed: true } })}
                     >
-                      Écarter
+                      Dismiss
                     </Button>
                   </div>
                 </div>
@@ -227,11 +227,11 @@ export function ReconciliationTab({
       <section className="rounded-md border bg-card p-4">
         <details>
           <summary className="cursor-pointer font-display text-base font-semibold">
-            Paiements fournisseurs déjà confirmés ({confirmedVendor.length})
+            Vendor payments already confirmed ({confirmedVendor.length})
           </summary>
           <p className="mt-1 mb-3 text-xs text-muted-foreground">
-            Ces montants ont quitté le compte GAD (AmEx / Wells Fargo) — ils entrent déjà
-            dans les totaux.
+            These amounts left the GAD account (AmEx / Wells Fargo) — they already count toward
+            totals.
           </p>
           <ul className="divide-y text-xs">
             {confirmedVendor.map((p) => (
@@ -250,12 +250,12 @@ export function ReconciliationTab({
 
       {dismissed.length > 0 && (
         <section className="rounded-md border bg-card p-4">
-          <h3 className="mb-2 font-display text-base font-semibold">Écartés ({dismissed.length})</h3>
+          <h3 className="mb-2 font-display text-base font-semibold">Dismissed ({dismissed.length})</h3>
           <ul className="divide-y text-xs">
             {dismissed.map((p) => (
               <li key={p.id} className="flex items-center justify-between py-1.5">
                 <span className="min-w-0 flex-1 truncate">
-                  <Badge variant="outline" className="mr-2">exclu</Badge>
+                  <Badge variant="outline" className="mr-2">excluded</Badge>
                   {p.description ?? "—"}
                 </span>
                 <div className="flex flex-shrink-0 items-center gap-2">
@@ -268,7 +268,7 @@ export function ReconciliationTab({
                     className="h-6 text-xs"
                     onClick={() => updateMut.mutate({ id: p.id, patch: { dismissed: false } })}
                   >
-                    Rétablir
+                    Restore
                   </Button>
                 </div>
               </li>
@@ -331,18 +331,18 @@ function InvoicePanel({
     <section className="rounded-md border bg-card p-4">
       <div className="mb-3 flex flex-wrap items-center gap-3 border-b pb-3">
         <div>
-          <h3 className="font-display text-base font-semibold">Facture {invoice}</h3>
+          <h3 className="font-display text-base font-semibold">Invoice {invoice}</h3>
           <div className="text-xs text-muted-foreground">
-            {rows.length} ligne{rows.length > 1 ? "s" : ""} · {fmt(total)}
+            {rows.length} row{rows.length > 1 ? "s" : ""} · {fmt(total)}
           </div>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <Select value={phaseId} onValueChange={setPhaseId}>
             <SelectTrigger className="h-8 w-44 text-xs">
-              <SelectValue placeholder="Assigner phase" />
+              <SelectValue placeholder="Assign phase" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NULL_VAL}>Sans phase</SelectItem>
+              <SelectItem value={NULL_VAL}>No phase</SelectItem>
               {phases.map((ph) => (
                 <SelectItem key={ph.id} value={ph.id}>
                   {ph.name}
@@ -356,7 +356,7 @@ function InvoicePanel({
             disabled={busy}
             onClick={() => onBulkConfirm("paid", phaseId === NULL_VAL ? null : phaseId)}
           >
-            {busy && <Loader2 className="mr-1 h-3 w-3 animate-spin" />} Confirmer facture payée
+            {busy && <Loader2 className="mr-1 h-3 w-3 animate-spin" />} Confirm invoice paid
           </Button>
           <Button
             size="sm"
@@ -365,7 +365,7 @@ function InvoicePanel({
             disabled={busy}
             onClick={() => onBulkConfirm("due", phaseId === NULL_VAL ? null : phaseId)}
           >
-            Confirmer facture due
+            Confirm invoice due
           </Button>
         </div>
       </div>
@@ -375,7 +375,7 @@ function InvoicePanel({
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{r.description ?? "—"}</div>
               <div className="text-xs text-muted-foreground">
-                {r.due_date ?? "—"} · {r.direction === "client_to_gad" ? "Client → GAD" : "GAD → Vendor"} · état: {r.state}
+                {r.due_date ?? "—"} · {r.direction === "client_to_gad" ? "Client → GAD" : "GAD → Vendor"} · state: {r.state}
               </div>
             </div>
             <div className="num-tabular whitespace-nowrap text-sm">{fmt(Number(r.amount ?? 0))}</div>
@@ -384,7 +384,7 @@ function InvoicePanel({
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7"
-                title="Confirmer payée"
+                title="Confirm paid"
                 onClick={() => onRowConfirm(r.id, "paid")}
               >
                 <Check className="h-4 w-4" />
@@ -403,13 +403,13 @@ function InvoicePanel({
                 className="h-7 px-2 text-xs"
                 onClick={() => onRowEdit(r)}
               >
-                Modifier
+                Edit
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7"
-                title="Écarter"
+                title="Dismiss"
                 onClick={() => onRowDismiss(r.id)}
               >
                 <X className="h-4 w-4" />
@@ -441,7 +441,7 @@ function ConfirmDerivedDialog({
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Confirmer & dater</DialogTitle>
+          <DialogTitle>Confirm & date</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
           <div className="rounded border bg-muted/30 p-3 text-xs">
@@ -449,7 +449,7 @@ function ConfirmDerivedDialog({
             <div className="mt-1 text-muted-foreground">{fmt(Number(target.amount ?? 0))}</div>
           </div>
           <div>
-            <label className="label-micro mb-1 block">Échéance (requis)</label>
+            <label className="label-micro mb-1 block">Due date (required)</label>
             <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
           <div>
@@ -457,7 +457,7 @@ function ConfirmDerivedDialog({
             <Select value={phaseId} onValueChange={setPhaseId}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={NULL_VAL}>Sans phase</SelectItem>
+                <SelectItem value={NULL_VAL}>No phase</SelectItem>
                 {phases.map((ph) => (
                   <SelectItem key={ph.id} value={ph.id}>{ph.name}</SelectItem>
                 ))}
@@ -465,23 +465,23 @@ function ConfirmDerivedDialog({
             </Select>
           </div>
           <div>
-            <label className="label-micro mb-1 block">État</label>
+            <label className="label-micro mb-1 block">State</label>
             <Select value={state} onValueChange={(v) => setState(v as "paid" | "due")}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="due">Due</SelectItem>
-                <SelectItem value="paid">Payée</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Annuler</Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button
             disabled={!dueDate}
             onClick={() => onConfirm(dueDate, phaseId === NULL_VAL ? null : phaseId, state)}
           >
-            Confirmer
+            Confirm
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -516,18 +516,18 @@ function EditPaymentDialog({
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Modifier le paiement</DialogTitle>
+          <DialogTitle>Edit payment</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
           <div className="rounded border bg-muted/30 p-2 text-xs text-muted-foreground">
             {target.description ?? "—"}
           </div>
           <div>
-            <label className="label-micro mb-1 block">Montant</label>
+            <label className="label-micro mb-1 block">Amount</label>
             <Input type="number" value={amt} onChange={(e) => setAmt(e.target.value)} className="num-tabular" />
           </div>
           <div>
-            <label className="label-micro mb-1 block">Échéance</label>
+            <label className="label-micro mb-1 block">Due date</label>
             <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} />
           </div>
           <div>
@@ -535,7 +535,7 @@ function EditPaymentDialog({
             <Select value={phaseId} onValueChange={setPhaseId}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={NULL_VAL}>Sans phase</SelectItem>
+                <SelectItem value={NULL_VAL}>No phase</SelectItem>
                 {phases.map((ph) => (
                   <SelectItem key={ph.id} value={ph.id}>{ph.name}</SelectItem>
                 ))}
@@ -544,7 +544,7 @@ function EditPaymentDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Annuler</Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button
             onClick={() =>
               onSave({
@@ -554,7 +554,7 @@ function EditPaymentDialog({
               })
             }
           >
-            Enregistrer
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

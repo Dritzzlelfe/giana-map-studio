@@ -111,15 +111,15 @@ function DashboardPage() {
             </section>
             {(totals.hasMaskedCommitted || totals.hasMaskedOptions) && (
               <p className="text-xs text-muted-foreground">
-                Montants partiellement masqués par votre rôle.
+                Some amounts hidden by your role.
               </p>
             )}
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card title={`ASAP`} eyebrow="Priorité haute" count={asap.length}>
+              <Card title={`ASAP`} eyebrow="High priority" count={asap.length}>
                 <ItemList items={asap} data={data} onEdit={setEditing} />
               </Card>
-              <Card title={`À faire`} eyebrow="À spec / à commander" count={todo.length}>
+              <Card title={`To do`} eyebrow="To spec / to order" count={todo.length}>
                 <ItemList
                   items={[...todo].sort((a, b) =>
                     (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"),
@@ -129,7 +129,7 @@ function DashboardPage() {
                 />
               </Card>
 
-              <Card title="Personnes" eyebrow="Équipe projet" count={data.people.length}>
+              <Card title="People" eyebrow="Project team" count={data.people.length}>
                 <ul className="divide-y divide-[color:var(--rule-soft)] text-sm">
                   {data.people.map((p) => (
                     <li key={p.id} className="flex items-center justify-between py-2">
@@ -139,7 +139,7 @@ function DashboardPage() {
                   ))}
                 </ul>
               </Card>
-              <Card title="Fournisseurs" eyebrow="Vendors" count={data.vendors.length}>
+              <Card title="Vendors" eyebrow="Suppliers" count={data.vendors.length}>
                 <ul className="divide-y divide-[color:var(--rule-soft)] text-sm">
                   {data.vendors.map((v) => (
                     <li key={v.id} className="flex items-center justify-between py-2">
@@ -159,22 +159,22 @@ function DashboardPage() {
               </Card>
             </div>
 
-            <Card title="Cashflow" eyebrow="Ce mois & le suivant" icon={Banknote}>
+            <Card title="Cashflow" eyebrow="This month & next" icon={Banknote}>
               {payments.length === 0 ? (
                 <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-8 text-center">
                   <Banknote
                     className="mx-auto mb-3 h-8 w-8 text-[color:var(--accent-brass)]"
                     strokeWidth={1.25}
                   />
-                  <p className="font-display text-lg text-foreground">Aucun paiement enregistré</p>
+                  <p className="font-display text-lg text-foreground">No payments recorded</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Les mouvements apparaîtront à mesure qu'ils sont saisis.
+                    Entries will appear as they are recorded.
                   </p>
                   <Link
                     to="/cashflow"
                     className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[color:var(--primary)] hover:underline"
                   >
-                    Ajouter un paiement →
+                    Add a payment →
                   </Link>
                 </div>
               ) : (

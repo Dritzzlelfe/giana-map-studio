@@ -155,10 +155,10 @@ function LogisticsPage() {
       <div className="flex-1 overflow-auto p-6 lg:p-8">
         <div className="mx-auto max-w-[1600px]">
           <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
-            <div className="editorial-eyebrow mb-2">France · Mississippi · Résidence</div>
+            <div className="editorial-eyebrow mb-2">France · Mississippi · Residence</div>
             <div className="flex items-center gap-3">
               <Truck className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
-              <h1 className="font-display text-3xl tracking-tight">Logistique</h1>
+              <h1 className="font-display text-3xl tracking-tight">Logistics</h1>
             </div>
           </div>
 

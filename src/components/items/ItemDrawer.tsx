@@ -496,7 +496,8 @@ function ProductIdentityBlock({ productId }: { productId: string | null }) {
 
   if (!productId) return null;
 
-  const patch = (p: Partial<NonNullable<typeof product>>) => update.mutate(p);
+  const patch = (p: Partial<Product>) => update.mutate(p);
+
 
   return (
     <Section

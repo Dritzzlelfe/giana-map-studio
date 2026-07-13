@@ -14,7 +14,19 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import pg from "pg";
+
+// Deterministic uuid v5 for a "duplicate item_id" — mints a stable child id
+// so we don't lose rows the source file legitimately duplicates.
+function derivedItemId(originalId, occurrence) {
+  const h = crypto.createHash("sha1").update(`${originalId}:${occurrence}`).digest();
+  const b = Buffer.from(h.subarray(0, 16));
+  b[6] = (b[6] & 0x0f) | 0x50; // v5
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const s = b.toString("hex");
+  return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20,32)}`;
+}
 
 const SRC = process.argv[2] ?? "/mnt/user-uploads/gad_m4_import.json";
 const IMPORT_TAG = "programa_2026-07-13";

@@ -58,8 +58,13 @@
   --color-cat-action: var(--cat-action);
 
   --font-sans: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+
+  --color-brass: var(--accent-brass);
+  --color-brass-soft: var(--accent-brass-soft);
+  --color-walnut: var(--walnut);
+  --color-cream: var(--cream);
 }
 
 :root {

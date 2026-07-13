@@ -407,8 +407,12 @@ function BoardCard({
           </HoverCardTrigger>
           <HoverCardContent align="start" side="right" className="w-72 p-3">
             <div className="flex items-start gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]">
-                <CategoryIcon categoryKey={category?.key} className="h-5 w-5" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                ) : (
+                  <CategoryIcon categoryKey={category?.key} className="h-5 w-5" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-display text-sm leading-tight">{item.title}</div>

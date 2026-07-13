@@ -18,6 +18,10 @@ export type Category = {
   key: string;
   label: string;
   sort_order: number;
+  // Budget axis: 'construction' | 'ffe'. Fees follow their item's category
+  // axis; project-level fees (no category) count toward 'construction' by
+  // default — see budgetMath.axisOf.
+  axis: "construction" | "ffe" | null;
 };
 
 export type Vendor = {

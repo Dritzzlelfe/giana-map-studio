@@ -91,6 +91,8 @@ const screenReaderInstructions: ScreenReaderInstructions = {
 
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
+  const itemIds = useMemo(() => (data?.items ?? []).map((i) => i.id), [data]);
+  const { data: photoMap = {} } = useItemPhotoMap(itemIds);
   const [editing, setEditing] = useState<Item | null>(null);
   const [draggingItem, setDraggingItem] = useState<Item | null>(null);
   const update = useUpdateItem();

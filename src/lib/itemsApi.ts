@@ -68,6 +68,9 @@ export type Item = {
   client_paid_gad: boolean;
   gad_paid_vendor: boolean;
   balance_due_on_delivery: number | null;
+  is_fee: boolean;
+  programa_status: string | null;
+  import_source: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -92,7 +95,7 @@ const ITEM_WRITE_RETURN_COLS =
 
 
 export async function loadAll(): Promise<LoadedData> {
-  const [r, c, v, p, i] = await Promise.all([
+  const [r, c, v, p, i, iExtra] = await Promise.all([
     // Exclude money column `target_amount` — authenticated has no SELECT on it;
     // it is exposed only through `room_targets_visible` with role-aware masking.
     supabase
@@ -108,13 +111,25 @@ export async function loadAll(): Promise<LoadedData> {
       .from("items_visible")
       .select("*")
       .order("created_at"),
+    // Non-money columns absent from items_visible (product_id, is_fee, etc.)
+    // are safe to read directly from public.items.
+    supabase
+      .from("items")
+      .select("id, product_id, is_fee, programa_status, import_source, delivery_address_pending"),
   ]);
-  for (const x of [r, c, v, p, i]) if (x.error) throw x.error;
+  for (const x of [r, c, v, p, i, iExtra]) if (x.error) throw x.error;
   const rooms = (r.data ?? []) as Room[];
   const categories = (c.data ?? []) as Category[];
   const vendors = (v.data ?? []) as Vendor[];
   const people = (p.data ?? []) as Person[];
-  const items = (i.data ?? []) as Item[];
+  const extraById = new Map<string, Record<string, unknown>>(
+    ((iExtra.data ?? []) as { id: string }[]).map((x) => [x.id, x as Record<string, unknown>]),
+  );
+  const items = ((i.data ?? []) as Item[]).map((it) => ({
+    ...it,
+    ...(extraById.get(it.id) ?? {}),
+    is_fee: Boolean(extraById.get(it.id)?.is_fee),
+  })) as Item[];
   return {
     rooms,
     categories,
@@ -127,6 +142,12 @@ export async function loadAll(): Promise<LoadedData> {
     vendorById: Object.fromEntries(vendors.map((x) => [x.id, x])),
     personById: Object.fromEntries(people.map((x) => [x.id, x])),
   };
+}
+
+// Matrix, room grid, and trade schedule views hide fees and project-level
+// (room-less) items. Budget totals still count them — see budgetMath.ts.
+export function isVisibleInGrid(it: Item): boolean {
+  return !it.is_fee && it.room_id != null;
 }
 
 export async function createItem(patch: Partial<Item> & { title: string }): Promise<Item> {

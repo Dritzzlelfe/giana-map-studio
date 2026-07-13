@@ -46,3 +46,20 @@ export function gap(target: number | null, committed: number | null): number | n
   if (target == null || committed == null) return null;
   return target - committed;
 }
+
+// Project-wide roll-up: EVERY item counts, including fees and room-less
+// (project-level) items. Grid views hide those rows; budget totals do not.
+export function projectSpend(items: Item[]): RoomSpend {
+  const committed = items.filter((i) => isCommitted(i.status));
+  const options = items.filter((i) => isOption(i.status));
+  const c = sumClientPrice(committed);
+  const o = sumClientPrice(options);
+  return {
+    committed: committed.length ? c.total : 0,
+    options: options.length ? o.total : 0,
+    committedCount: committed.length,
+    optionsCount: options.length,
+    hasMaskedCommitted: c.masked,
+    hasMaskedOptions: o.masked,
+  };
+}

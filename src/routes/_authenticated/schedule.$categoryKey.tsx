@@ -5,7 +5,7 @@ import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
 import { ItemsTable } from "@/components/items/ItemsTable";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
-import type { Item } from "@/lib/itemsApi";
+import { isVisibleInGrid, type Item } from "@/lib/itemsApi";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/schedule/$categoryKey")({
@@ -21,7 +21,7 @@ function SchedulePage() {
   const category = data?.categoryByKey[categoryKey] ?? null;
   const items = data
     ? data.items
-        .filter((i) => category && i.category_id === category.id)
+        .filter((i) => category && i.category_id === category.id && isVisibleInGrid(i))
         .sort((a, b) => (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"))
     : [];
 

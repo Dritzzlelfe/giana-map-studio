@@ -170,6 +170,8 @@ export function pivotPayments(
   axis: PivotAxis,
   phases: { id: string; name: string; sort_order: number }[],
 ): CashCell[] {
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
+  const src = payments.filter((p) => p.confirmed && !p.dismissed);
   const cells = new Map<string, CashCell>();
   const columnFor = (p: PaymentWithMeta): string => {
     if (axis === "month") return p.due_date ? p.due_date.slice(0, 7) : "Unscheduled";
@@ -177,7 +179,7 @@ export function pivotPayments(
     const ph = phases.find((x) => x.id === p.phase_id);
     return ph?.name ?? "Unscheduled";
   };
-  for (const p of payments) {
+  for (const p of src) {
     const col = columnFor(p);
     let cell = cells.get(col);
     if (!cell) {
@@ -187,6 +189,7 @@ export function pivotPayments(
     if (p.direction === "client_to_gad") push(cell.clientLane, p);
     else push(cell.vendorLane, p);
   }
+
   const arr = [...cells.values()];
   if (axis === "month") {
     arr.sort((a, b) => (a.column === "Unscheduled" ? 1 : b.column === "Unscheduled" ? -1 : a.column.localeCompare(b.column)));
@@ -205,15 +208,19 @@ export function reservedTotal(payments: PaymentWithMeta[]): {
   masked: boolean;
   payments: PaymentWithMeta[];
 } {
-  const scoped = payments.filter((p) => p.state === "reserved");
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
+  const scoped = payments.filter(
+    (p) => p.confirmed && !p.dismissed && p.state === "reserved",
+  );
   const lane = emptyLane();
   for (const p of scoped) push(lane, p);
   return { total: lane.total, count: lane.count, masked: lane.masked, payments: scoped };
 }
 
 export function upcomingSorted(payments: PaymentWithMeta[]): PaymentWithMeta[] {
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
   return [...payments]
-    .filter((p) => p.state !== "paid")
+    .filter((p) => p.confirmed && !p.dismissed && p.state !== "paid")
     .sort((a, b) => (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999"));
 }
 
@@ -224,10 +231,12 @@ export function dashboardCashCard(payments: PaymentWithMeta[], now: Date = new D
   const thisKey = `${y}-${String(m + 1).padStart(2, "0")}`;
   const next = new Date(y, m + 1, 1);
   const nextKey = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
+  const src = payments.filter((p) => p.confirmed && !p.dismissed);
   const bucket = (key: string) => {
     const client = emptyLane();
     const vendor = emptyLane();
-    for (const p of payments) {
+    for (const p of src) {
       if (!p.due_date || p.due_date.slice(0, 7) !== key || p.state === "paid") continue;
       if (p.direction === "client_to_gad") push(client, p);
       else push(vendor, p);
@@ -236,3 +245,4 @@ export function dashboardCashCard(payments: PaymentWithMeta[], now: Date = new D
   };
   return { thisMonth: bucket(thisKey), nextMonth: bucket(nextKey) };
 }
+

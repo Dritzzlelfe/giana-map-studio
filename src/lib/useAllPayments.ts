@@ -5,6 +5,7 @@ import {
   fetchAllPayments,
   updatePayment,
   createPayment,
+  type NewPayment,
   type Payment,
 } from "./paymentsApi";
 import { paymentsQK } from "./usePayments";
@@ -18,7 +19,7 @@ export function useAllPayments() {
 export function useUpdatePaymentGlobal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, patch, itemId }: { id: string; patch: Partial<Payment>; itemId?: string }) =>
+    mutationFn: ({ id, patch, itemId }: { id: string; patch: Partial<Payment>; itemId?: string | null }) =>
       updatePayment(id, patch).then(() => ({ itemId })),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ALL_PAYMENTS_QK });
@@ -31,11 +32,12 @@ export function useUpdatePaymentGlobal() {
 export function useCreatePaymentGlobal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (patch: Omit<Payment, "id" | "created_at" | "updated_at">) => createPayment(patch),
+    mutationFn: (patch: NewPayment) => createPayment(patch),
     onSuccess: (_r, vars) => {
       qc.invalidateQueries({ queryKey: ALL_PAYMENTS_QK });
-      qc.invalidateQueries({ queryKey: paymentsQK(vars.item_id) });
+      if (vars.item_id) qc.invalidateQueries({ queryKey: paymentsQK(vars.item_id) });
     },
     onError: (e: Error) => toast.error(`Couldn't add payment: ${e.message}`),
   });
 }
+

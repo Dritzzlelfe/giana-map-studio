@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import type { LoadedData } from "@/lib/itemsApi";
 import type { Payment } from "@/lib/paymentsApi";
 import { toast } from "sonner";
+import { ReconciliationTab } from "@/components/cashflow/ReconciliationTab";
+
 
 export const Route = createFileRoute("/_authenticated/cashflow")({
   head: () => ({ meta: [{ title: "Cashflow — Project Map" }] }),
@@ -124,44 +126,72 @@ function CashflowPage() {
         )}
 
         {items && !isEmpty && (
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-6">
-              <section className="rounded-md border bg-card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-display text-base font-semibold">Pivot</h3>
-                  <Tabs value={axis} onValueChange={(v) => setAxis(v as PivotAxis)}>
-                    <TabsList>
-                      <TabsTrigger value="month">By month</TabsTrigger>
-                      <TabsTrigger value="phase">By phase</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+          <Tabs defaultValue="cashflow" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="cashflow">Cashflow</TabsTrigger>
+              {money === "full" && (
+                <TabsTrigger value="reconciliation">
+                  Réconciliation
+                  {pendingCount > 0 && (
+                    <Badge variant="outline" className="ml-2">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              )}
+            </TabsList>
+            <TabsContent value="cashflow">
+              <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+                <div className="space-y-6">
+                  <section className="rounded-md border bg-card p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="font-display text-base font-semibold">Pivot</h3>
+                      <Tabs value={axis} onValueChange={(v) => setAxis(v as PivotAxis)}>
+                        <TabsList>
+                          <TabsTrigger value="month">By month</TabsTrigger>
+                          <TabsTrigger value="phase">By phase</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                    <PivotTable cells={cells} onCell={setDrilldownCell} />
+                  </section>
+
+                  <section className="rounded-md border bg-card p-4">
+                    <h3 className="mb-3 font-display text-base font-semibold">
+                      Upcoming ({upcoming.length})
+                    </h3>
+                    <UpcomingTable
+                      payments={upcoming}
+                      phases={phases}
+                      canEdit={money === "full"}
+                      userEmail={profile?.email ?? null}
+                    />
+                  </section>
                 </div>
-                <PivotTable cells={cells} onCell={setDrilldownCell} />
-              </section>
 
-              <section className="rounded-md border bg-card p-4">
-                <h3 className="mb-3 font-display text-base font-semibold">
-                  Upcoming ({upcoming.length})
-                </h3>
-                <UpcomingTable
-                  payments={upcoming}
+                <aside className="space-y-4">
+                  <ReservedPanel
+                    total={reserved.total}
+                    count={reserved.count}
+                    masked={reserved.masked}
+                    payments={reserved.payments}
+                  />
+                </aside>
+              </div>
+            </TabsContent>
+            {money === "full" && (
+              <TabsContent value="reconciliation">
+                <ReconciliationTab
+                  payments={enriched}
+                  data={items}
                   phases={phases}
-                  canEdit={money === "full"}
-                  userEmail={profile?.email ?? null}
+                  userId={profile?.userId ?? ""}
                 />
-              </section>
-            </div>
-
-            <aside className="space-y-4">
-              <ReservedPanel
-                total={reserved.total}
-                count={reserved.count}
-                masked={reserved.masked}
-                payments={reserved.payments}
-              />
-            </aside>
-          </div>
+              </TabsContent>
+            )}
+          </Tabs>
         )}
+
 
         <PivotDrilldownDialog
           cell={drilldownCell}
@@ -650,9 +680,11 @@ function CashCallDialog({
   phases: Phase[];
 }) {
   const today = new Date().toISOString().slice(0, 10);
+  // Golden rule: unconfirmed/dismissed payments never enter any total.
   const client = payments.filter(
-    (p) => p.direction === "client_to_gad" && p.state !== "paid",
+    (p) => p.confirmed && !p.dismissed && p.direction === "client_to_gad" && p.state !== "paid",
   );
+
 
   const byAxis = (axisId: "construction" | "ffe") => {
     const scoped = client.filter((p) => {

@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Banknote, Loader2, Truck, Users2, Wallet } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
+import { HeroBand } from "@/components/ui/HeroBand";
 import { useItemsData } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";

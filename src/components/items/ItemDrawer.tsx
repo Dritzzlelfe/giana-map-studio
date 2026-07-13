@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Trash2, Check, AlertTriangle, ArrowRight } from "lucide-react";
+import { Trash2, Check, AlertTriangle, ArrowRight, Upload, ImagePlus, Loader2, X } from "lucide-react";
 import {
   LOGISTICS_LOCATIONS,
   PRIORITIES,

@@ -65,16 +65,24 @@ function BudgetPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Wallet className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-          <h2 className="font-display text-lg font-semibold">Budget</h2>
-          {money === "none" && (
-            <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
-              Money hidden by your role
-            </span>
-          )}
-        </div>
+      <div className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
+            <div className="editorial-eyebrow mb-2">Signed budgets · gap live</div>
+            <div className="flex items-center gap-3">
+              <Wallet className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
+              <h1 className="font-display text-3xl tracking-tight">Budget</h1>
+              {money === "none" && (
+                <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
+                  Montants masqués par votre rôle
+                </span>
+              )}
+            </div>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Les <em>fees</em> suivent l'axe catégorie de leur item ; les fees projet (sans catégorie) comptent en construction par défaut.
+            </p>
+          </div>
+
 
         {(isLoading || bLoading) && (
           <div className="text-muted-foreground">

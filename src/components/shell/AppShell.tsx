@@ -56,6 +56,12 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
   const qc = useQueryClient();
   const { data: profile } = useCurrentProfile();
   const [previewKey, setPreviewKey] = usePreviewRoleKey();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // close mobile drawer on navigation
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Optional preview override: fetch roles and swap rights in memory when admin
   const { data: previewRole } = useQuery({

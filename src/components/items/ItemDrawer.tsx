@@ -33,6 +33,8 @@ import {
   useUpdateItem,
 } from "@/lib/useItemsData";
 import { useProduct, useUpdateProduct } from "@/lib/useProductsData";
+import type { Product } from "@/lib/productsApi";
+
 import { useApprovalsForItem, useRecordApproval } from "@/lib/useApprovals";
 import {
   useCreatePayment,

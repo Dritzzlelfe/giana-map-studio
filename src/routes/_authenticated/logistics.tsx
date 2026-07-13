@@ -17,13 +17,18 @@ import { cn } from "@/lib/utils";
 import {
   DndContext,
   DragOverlay,
+  KeyboardCode,
+  KeyboardSensor,
   PointerSensor,
   useDraggable,
   useDroppable,
   useSensor,
   useSensors,
+  type Announcements,
   type DragEndEvent,
   type DragStartEvent,
+  type KeyboardCoordinateGetter,
+  type ScreenReaderInstructions,
 } from "@dnd-kit/core";
 
 export const Route = createFileRoute("/_authenticated/logistics")({
@@ -36,6 +41,51 @@ const COLUMNS: { id: string | null; label: string }[] = [
   ...LOGISTICS_LOCATIONS.map((l) => ({ id: l.id as string | null, label: l.label })),
 ];
 
+const COLUMN_IDS = COLUMNS.map((c) => (c.id ?? "__unset"));
+const COLUMN_LABEL: Record<string, string> = Object.fromEntries(
+  COLUMNS.map((c) => [c.id ?? "__unset", c.label]),
+);
+
+// Snap between column droppables with arrow keys instead of pixel nudges.
+const columnCoordinateGetter: KeyboardCoordinateGetter = (
+  event,
+  { context: { active, droppableRects, droppableContainers, collisionRect } },
+) => {
+  const dir = ({
+    [KeyboardCode.Right]: "next",
+    [KeyboardCode.Down]: "next",
+    [KeyboardCode.Left]: "prev",
+    [KeyboardCode.Up]: "prev",
+  } as Record<string, "next" | "prev" | undefined>)[event.code];
+  if (!dir || !active || !collisionRect) return undefined;
+
+  const currentId = String(
+    Object.values(droppableContainers.getEnabled())
+      .find((d) => {
+        const r = droppableRects.get(d.id);
+        if (!r) return false;
+        const cx = collisionRect.left + collisionRect.width / 2;
+        return cx >= r.left && cx <= r.left + r.width;
+      })?.id ?? COLUMN_IDS[0],
+  );
+  const idx = COLUMN_IDS.indexOf(currentId);
+  const nextIdx = dir === "next" ? Math.min(COLUMN_IDS.length - 1, idx + 1) : Math.max(0, idx - 1);
+  const target = droppableRects.get(COLUMN_IDS[nextIdx]);
+  if (!target) return undefined;
+  event.preventDefault();
+  return {
+    x: target.left + target.width / 2 - collisionRect.width / 2,
+    y: target.top + 16,
+  };
+};
+
+const screenReaderInstructions: ScreenReaderInstructions = {
+  draggable:
+    "To pick up a logistics item, press space or enter. Use the arrow keys to move it between columns. Press space or enter again to drop it into the highlighted column, or press escape to cancel.",
+};
+
+
+
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
@@ -43,11 +93,31 @@ function LogisticsPage() {
   const update = useUpdateItem();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: columnCoordinateGetter }),
   );
 
   const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
 
   const pending = useMemo(() => items.filter((i) => i.delivery_address_pending), [items]);
+
+  const announcements: Announcements = useMemo(() => {
+    const titleOf = (id: string) =>
+      items.find((i) => i.id === id)?.title ?? "item";
+    return {
+      onDragStart: ({ active }) =>
+        `Picked up ${titleOf(String(active.id))}. Use arrow keys to move between columns.`,
+      onDragOver: ({ active, over }) =>
+        over
+          ? `${titleOf(String(active.id))} is over ${COLUMN_LABEL[String(over.id)] ?? "column"}.`
+          : `${titleOf(String(active.id))} is no longer over a column.`,
+      onDragEnd: ({ active, over }) =>
+        over
+          ? `Dropped ${titleOf(String(active.id))} into ${COLUMN_LABEL[String(over.id)] ?? "column"}.`
+          : `Dropped ${titleOf(String(active.id))}. It was not moved.`,
+      onDragCancel: ({ active }) =>
+        `Cancelled moving ${titleOf(String(active.id))}.`,
+    };
+  }, [items]);
 
   const byColumn = useMemo(() => {
     const map = new Map<string, Item[]>();
@@ -112,6 +182,7 @@ function LogisticsPage() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onDragCancel={() => setDraggingItem(null)}
+                  accessibility={{ announcements, screenReaderInstructions }}
                 >
                   <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
                     {COLUMNS.map((col) => {
@@ -279,7 +350,7 @@ function BoardCard({
         <button
           type="button"
           className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-          aria-label="Drag to move"
+          aria-label={`Drag ${item.title} between columns. Currently in ${currentLocation}.`}
           {...listeners}
           {...attributes}
         >

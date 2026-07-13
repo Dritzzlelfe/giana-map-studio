@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical } from "lucide-react";
+import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical, Calendar, Hash, Store, Clock } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
@@ -12,6 +12,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {

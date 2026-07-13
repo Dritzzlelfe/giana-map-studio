@@ -14,19 +14,19 @@ import {
   Wallet,
   Banknote,
   Truck,
+  Menu,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   hasRight,
   useCurrentProfile,
   usePreviewRoleKey,
   type ModuleKey,
 } from "@/lib/useCurrentProfile";
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import logoAsset from "@/assets/giana-allen-logo.webp.asset.json";
 
 
@@ -56,6 +56,12 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
   const qc = useQueryClient();
   const { data: profile } = useCurrentProfile();
   const [previewKey, setPreviewKey] = usePreviewRoleKey();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // close mobile drawer on navigation
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Optional preview override: fetch roles and swap rights in memory when admin
   const { data: previewRole } = useQuery({
@@ -98,24 +104,68 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
     <div className="flex h-screen flex-col bg-paper">
       <Toaster richColors position="top-right" />
       <header className="shrink-0 border-b border-[color:var(--rule-soft)] bg-paper">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-6 px-8 py-4">
-          <Link to="/" className="flex min-w-0 items-center gap-3">
-            <img
-              src={logoAsset.url}
-              alt="Giana Allen Design"
-              className="h-8 w-auto object-contain"
-            />
-            <span
-              aria-hidden
-              className="hidden h-6 w-px sm:block"
-              style={{ background: "var(--accent-brass)", opacity: 0.5 }}
-            />
-            <span className="hidden font-display text-base italic tracking-tight text-[color:var(--walnut)] sm:inline">
-              Atelier
-            </span>
-          </Link>
+        <div className="mx-auto grid max-w-[1600px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:gap-6 sm:px-8 sm:py-4">
+          {/* Left: logo + mobile menu */}
+          <div className="flex min-w-0 items-center gap-2">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="lg:hidden"
+                  aria-label="Ouvrir le menu"
+                >
+                  <Menu className="h-5 w-5" strokeWidth={1.5} />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 bg-paper p-0">
+                <SheetHeader className="border-b border-[color:var(--rule-soft)] px-5 py-4">
+                  <SheetTitle className="font-display text-lg italic tracking-tight text-[color:var(--walnut)]">
+                    Atelier
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col p-2">
+                  {visibleNav.map((n) => {
+                    const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
+                    const Icon = n.icon;
+                    return (
+                      <Link
+                        key={n.to}
+                        to={n.to}
+                        className={cn(
+                          "label-micro inline-flex items-center gap-3 rounded-sm px-3 py-3 transition-colors",
+                          active
+                            ? "bg-[color:var(--accent-tint)] text-foreground"
+                            : "text-muted-foreground hover:bg-[color:var(--accent-tint)]/60 hover:text-foreground",
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" strokeWidth={1.25} />
+                        <span className="truncate">{n.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </SheetContent>
+            </Sheet>
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <img
+                src={logoAsset.url}
+                alt="Giana Allen Design"
+                className="h-7 w-auto shrink-0 object-contain sm:h-8"
+              />
+              <span
+                aria-hidden
+                className="hidden h-6 w-px lg:block"
+                style={{ background: "var(--accent-brass)", opacity: 0.5 }}
+              />
+              <span className="hidden font-display text-base italic tracking-tight text-[color:var(--walnut)] lg:inline">
+                Atelier
+              </span>
+            </Link>
+          </div>
 
-          <nav className="ml-2 flex items-center gap-1">
+          {/* Middle: desktop nav (scrollable on tablet) */}
+          <nav className="hidden min-w-0 items-center gap-1 overflow-x-auto lg:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {visibleNav.map((n) => {
               const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
               const Icon = n.icon;
@@ -124,7 +174,7 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
                   key={n.to}
                   to={n.to}
                   className={cn(
-                    "label-micro relative inline-flex items-center gap-1.5 px-3 py-2 transition-colors",
+                    "label-micro relative inline-flex shrink-0 items-center gap-1.5 px-3 py-2 transition-colors",
                     active
                       ? "text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-[2px] after:bg-[color:var(--accent-brass)]"
                       : "text-muted-foreground hover:text-foreground",
@@ -137,33 +187,53 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
             })}
           </nav>
 
-          <div className="flex-1" />
-          {right}
-          {previewKey && (
-            <div className="label-micro flex items-center gap-2 border border-[color:var(--primary)]/40 bg-[color:var(--accent-tint)] px-2 py-1 text-[color:var(--primary)]">
-              <Eye className="h-3 w-3" strokeWidth={1.5} />
-              Previewing as{" "}
-              <strong className="font-semibold">{previewRole?.label ?? previewKey}</strong>
-              <button
-                className="ml-1 px-1 hover:text-foreground"
-                onClick={() => setPreviewKey(null)}
-                title="Exit preview"
+          {/* Right: contextual actions + identity */}
+          <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+            {right}
+            {previewKey && (
+              <div
+                className="label-micro hidden items-center gap-2 border border-[color:var(--primary)]/40 bg-[color:var(--accent-tint)] px-2 py-1 text-[color:var(--primary)] md:flex"
+                title={`Previewing as ${previewRole?.label ?? previewKey}`}
               >
-                ×
+                <Eye className="h-3 w-3 shrink-0" strokeWidth={1.5} />
+                <span className="truncate">
+                  Previewing as{" "}
+                  <strong className="font-semibold">{previewRole?.label ?? previewKey}</strong>
+                </span>
+                <button
+                  className="ml-1 px-1 hover:text-foreground"
+                  onClick={() => setPreviewKey(null)}
+                  title="Exit preview"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            {previewKey && (
+              <button
+                className="label-micro flex items-center gap-1 border border-[color:var(--primary)]/40 bg-[color:var(--accent-tint)] px-2 py-1 text-[color:var(--primary)] md:hidden"
+                onClick={() => setPreviewKey(null)}
+                title={`Previewing as ${previewRole?.label ?? previewKey} — tap to exit`}
+                aria-label="Exit preview"
+              >
+                <Eye className="h-3 w-3" strokeWidth={1.5} />
+                <span>×</span>
               </button>
-            </div>
-          )}
-          {profile?.role && (
-            <span className="text-[11px] text-muted-foreground">
-              {profile.email} · <span className="text-foreground">{profile.role.label}</span>
-            </span>
-          )}
-          {!profile?.role && profile && (
-            <span className="text-[11px] text-[color:var(--primary)]">No role assigned</span>
-          )}
-          <Button variant="ghost" size="sm" onClick={handleSignOut} title="Sign out">
-            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
-          </Button>
+            )}
+            {profile?.role && (
+              <span className="hidden min-w-0 max-w-[220px] truncate text-[11px] text-muted-foreground xl:inline">
+                {profile.email} · <span className="text-foreground">{profile.role.label}</span>
+              </span>
+            )}
+            {!profile?.role && profile && (
+              <span className="hidden text-[11px] text-[color:var(--primary)] sm:inline">
+                No role assigned
+              </span>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut} title="Sign out" aria-label="Sign out">
+              <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} />
+            </Button>
+          </div>
         </div>
       </header>
       <main className="relative flex flex-1 min-h-0 flex-col overflow-hidden">{children}</main>

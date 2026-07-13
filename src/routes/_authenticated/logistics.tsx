@@ -302,12 +302,14 @@ function BoardColumn({
   items,
   data,
   onEdit,
+  photoMap,
 }: {
   columnId: string;
   label: string;
   items: Item[];
   data: LoadedData;
   onEdit: (i: Item) => void;
+  photoMap: Record<string, string>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
   return (
@@ -326,7 +328,14 @@ function BoardColumn({
       </div>
       <div className="space-y-1.5">
         {items.map((it) => (
-          <BoardCard key={it.id} item={it} data={data} onEdit={onEdit} currentLocation={label} />
+          <BoardCard
+            key={it.id}
+            item={it}
+            data={data}
+            onEdit={onEdit}
+            currentLocation={label}
+            photoUrl={photoMap[it.id]}
+          />
         ))}
         {items.length === 0 && (
           <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-6 text-center text-xs italic text-muted-foreground">

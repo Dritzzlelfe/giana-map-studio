@@ -193,10 +193,6 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <h3 className="font-display text-2xl tracking-tight text-foreground">
         Aucun paiement enregistré
       </h3>
-      <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
-        Les paiements apparaissent ici à mesure qu'ils sont saisis ou importés de la
-        réconciliation financière. Rien n'est fabriqué à partir du statut des items.
-      </p>
       <Button className="mt-6" onClick={onAdd}>
         <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Ajouter un premier paiement
       </Button>

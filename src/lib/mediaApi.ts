@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type MediaRow = {
@@ -65,5 +65,84 @@ export function useItemPhotoMap(itemIds: string[]) {
       return map;
     },
     enabled: itemIds.length > 0,
+  });
+}
+
+const ITEM_PHOTOS_BUCKET = "item-photos";
+// 10-year signed URL — bucket is private, so we bake a long-lived signed URL
+// into media.file_url so <img src> works everywhere without extra fetches.
+const SIGNED_URL_TTL_SECONDS = 60 * 60 * 24 * 365 * 10;
+
+export function useMediaForItem(itemId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["media", "item", itemId ?? ""],
+    queryFn: async (): Promise<MediaRow[]> => {
+      const { data, error } = await supabase
+        .from("media")
+        .select("*")
+        .eq("item_id", itemId as string)
+        .eq("kind", "photo")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as MediaRow[];
+    },
+    enabled: !!itemId,
+  });
+}
+
+export function useUploadItemPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path = `${itemId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(ITEM_PHOTOS_BUCKET)
+        .upload(path, file, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from(ITEM_PHOTOS_BUCKET)
+        .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+      if (signErr) throw signErr;
+      const { data: row, error: insErr } = await supabase
+        .from("media")
+        .insert({
+          item_id: itemId,
+          kind: "photo",
+          file_url: signed.signedUrl,
+        })
+        .select()
+        .single();
+      if (insErr) throw insErr;
+      return row as MediaRow;
+    },
+    onSuccess: (_row, vars) => {
+      qc.invalidateQueries({ queryKey: ["media", "item", vars.itemId] });
+      qc.invalidateQueries({ queryKey: ["media", "items"] });
+    },
+  });
+}
+
+export function useDeleteItemPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ mediaId, fileUrl, itemId }: { mediaId: string; fileUrl: string; itemId: string }) => {
+      // Extract the storage object path from the signed URL.
+      const match = fileUrl.match(/\/object\/sign\/item-photos\/([^?]+)/);
+      if (match) {
+        await supabase.storage.from(ITEM_PHOTOS_BUCKET).remove([decodeURIComponent(match[1])]);
+      }
+      const { error } = await supabase.from("media").delete().eq("id", mediaId);
+      if (error) throw error;
+      return { itemId };
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["media", "item", res.itemId] });
+      qc.invalidateQueries({ queryKey: ["media", "items"] });
+    },
   });
 }

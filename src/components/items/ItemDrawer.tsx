@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Trash2, Check, AlertTriangle, ArrowRight } from "lucide-react";
+import { Trash2, Check, AlertTriangle, ArrowRight, Upload, ImagePlus, Loader2, X } from "lucide-react";
 import {
   LOGISTICS_LOCATIONS,
   PRIORITIES,
@@ -42,10 +42,10 @@ import {
   usePaymentsForItem,
   derivePaymentTotals,
 } from "@/lib/usePayments";
-import { useMediaForProduct } from "@/lib/mediaApi";
+import { useMediaForProduct, useMediaForItem, useUploadItemPhoto, useDeleteItemPhoto } from "@/lib/mediaApi";
 import { useCurrentProfile } from "@/lib/useCurrentProfile";
 import { LIFECYCLE_STAGES, checkTransition, isOption, type LifecycleStage } from "@/lib/lifecycle";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -450,6 +450,7 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
                 rows={3}
               />
             </Field>
+            <ItemPhotoUploader itemId={item.id} />
             <MediaStrip productId={item.product_id} />
           </div>
         </Section>
@@ -804,6 +805,94 @@ function ApprovalSummaryBlock({
         </div>
       )}
     </Section>
+  );
+}
+
+function ItemPhotoUploader({ itemId }: { itemId: string }) {
+  const { data: photos = [], isLoading } = useMediaForItem(itemId);
+  const upload = useUploadItemPhoto();
+  const del = useDeleteItemPhoto();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onPick = () => inputRef.current?.click();
+  const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Max 10 MB per photo.");
+      return;
+    }
+    setError(null);
+    try {
+      await upload.mutateAsync({ itemId, file });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-center justify-between">
+        <div className="label-micro">Item photos</div>
+        <Button size="sm" variant="outline" onClick={onPick} disabled={upload.isPending}>
+          {upload.isPending ? (
+            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+          ) : photos.length === 0 ? (
+            <ImagePlus className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+          ) : (
+            <Upload className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.5} />
+          )}
+          {photos.length === 0 ? "Add photo" : "Add another"}
+        </Button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onChange}
+        />
+      </div>
+      {error && <div className="mb-1.5 text-xs text-destructive">{error}</div>}
+      {isLoading ? (
+        <div className="text-xs text-muted-foreground">Loading…</div>
+      ) : photos.length === 0 ? (
+        <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-4 text-center text-xs italic text-muted-foreground">
+          No photo yet — the first upload becomes the card thumbnail.
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {photos.map((m, idx) => (
+            <div
+              key={m.id}
+              className="group relative h-20 w-20 shrink-0 overflow-hidden rounded border border-[color:var(--rule-soft)]"
+            >
+              <img src={m.file_url} alt="" className="h-full w-full object-cover" />
+              {idx === 0 && (
+                <span className="absolute left-1 top-1 rounded bg-[color:var(--accent-brass)] px-1 text-[9px] font-semibold uppercase tracking-wide text-white">
+                  Thumb
+                </span>
+              )}
+              <button
+                type="button"
+                aria-label="Remove photo"
+                onClick={() =>
+                  del.mutate({ mediaId: m.id, fileUrl: m.file_url, itemId })
+                }
+                className="absolute right-1 top-1 hidden rounded-full bg-black/60 p-0.5 text-white group-hover:block"
+              >
+                <X className="h-3 w-3" strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

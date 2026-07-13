@@ -22,9 +22,6 @@ function RoomPicker() {
               <Home className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
               <h1 className="font-display text-3xl tracking-tight">Rooms</h1>
             </div>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              Choisissez une pièce pour voir tous ses items groupés par catégorie.
-            </p>
           </div>
 
           {isLoading && (

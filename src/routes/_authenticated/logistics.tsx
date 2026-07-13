@@ -96,6 +96,10 @@ function LogisticsPage() {
     useSensor(KeyboardSensor, { coordinateGetter: columnCoordinateGetter }),
   );
 
+  const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
+
+  const pending = useMemo(() => items.filter((i) => i.delivery_address_pending), [items]);
+
   const announcements: Announcements = useMemo(() => {
     const titleOf = (id: string) =>
       items.find((i) => i.id === id)?.title ?? "item";
@@ -114,10 +118,6 @@ function LogisticsPage() {
         `Cancelled moving ${titleOf(String(active.id))}.`,
     };
   }, [items]);
-
-  const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
-
-  const pending = useMemo(() => items.filter((i) => i.delivery_address_pending), [items]);
 
   const byColumn = useMemo(() => {
     const map = new Map<string, Item[]>();

@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCashflowRouteImport } from './routes/_authenticated/cashflow'
 import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -44,6 +45,11 @@ const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCashflowRoute = AuthenticatedCashflowRouteImport.update({
+  id: '/cashflow',
+  path: '/cashflow',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBudgetRoute = AuthenticatedBudgetRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/cashflow': typeof AuthenticatedCashflowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/cashflow': typeof AuthenticatedCashflowRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/': typeof AuthenticatedIndexRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/budget': typeof AuthenticatedBudgetRoute
+  '/_authenticated/cashflow': typeof AuthenticatedCashflowRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/budget'
+    | '/cashflow'
     | '/dashboard'
     | '/map'
     | '/room/$roomId'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/budget'
+    | '/cashflow'
     | '/dashboard'
     | '/map'
     | '/'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/approvals'
     | '/_authenticated/budget'
+    | '/_authenticated/cashflow'
     | '/_authenticated/dashboard'
     | '/_authenticated/map'
     | '/_authenticated/'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cashflow': {
+      id: '/_authenticated/cashflow'
+      path: '/cashflow'
+      fullPath: '/cashflow'
+      preLoaderRoute: typeof AuthenticatedCashflowRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/budget': {
@@ -266,6 +285,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
+  AuthenticatedCashflowRoute: typeof AuthenticatedCashflowRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -279,6 +299,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
+  AuthenticatedCashflowRoute: AuthenticatedCashflowRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,

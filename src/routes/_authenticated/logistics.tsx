@@ -214,18 +214,27 @@ function PendingBanner({
 }
 
 function BoardColumn({
+  columnId,
   label,
   items,
   data,
   onEdit,
 }: {
+  columnId: string;
   label: string;
   items: Item[];
   data: LoadedData;
   onEdit: (i: Item) => void;
 }) {
+  const { setNodeRef, isOver } = useDroppable({ id: columnId });
   return (
-    <div className="rounded-md border bg-muted/20 p-2">
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "rounded-md border bg-muted/20 p-2 transition-colors",
+        isOver && "border-[color:var(--primary)] bg-[color:var(--primary)]/10",
+      )}
+    >
       <div className="mb-2 flex items-center justify-between">
         <div className="label-micro">{label}</div>
         <span className="text-xs text-muted-foreground">{items.length}</span>
@@ -243,6 +252,7 @@ function BoardColumn({
     </div>
   );
 }
+
 
 function BoardCard({
   item,

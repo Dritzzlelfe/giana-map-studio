@@ -25,8 +25,11 @@ function RoomPage() {
   const { roomId } = useParams({ from: "/_authenticated/room/$roomId" });
   const { data, isLoading, error } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
+  const uploadRoomImage = useUploadRoomImage();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const room = data?.roomById[roomId] ?? null;
+  const heroUrl = room?.image_url ?? heroAsset.url;
 
   return (
     <AppShell>

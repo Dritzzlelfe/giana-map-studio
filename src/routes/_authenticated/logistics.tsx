@@ -41,6 +41,51 @@ const COLUMNS: { id: string | null; label: string }[] = [
   ...LOGISTICS_LOCATIONS.map((l) => ({ id: l.id as string | null, label: l.label })),
 ];
 
+const COLUMN_IDS = COLUMNS.map((c) => (c.id ?? "__unset"));
+const COLUMN_LABEL: Record<string, string> = Object.fromEntries(
+  COLUMNS.map((c) => [c.id ?? "__unset", c.label]),
+);
+
+// Snap between column droppables with arrow keys instead of pixel nudges.
+const columnCoordinateGetter: KeyboardCoordinateGetter = (
+  event,
+  { context: { active, droppableRects, droppableContainers, collisionRect } },
+) => {
+  const dir = ({
+    [KeyboardCode.Right]: "next",
+    [KeyboardCode.Down]: "next",
+    [KeyboardCode.Left]: "prev",
+    [KeyboardCode.Up]: "prev",
+  } as Record<string, "next" | "prev" | undefined>)[event.code];
+  if (!dir || !active || !collisionRect) return undefined;
+
+  const currentId = String(
+    Object.values(droppableContainers.getEnabled())
+      .find((d) => {
+        const r = droppableRects.get(d.id);
+        if (!r) return false;
+        const cx = collisionRect.left + collisionRect.width / 2;
+        return cx >= r.left && cx <= r.left + r.width;
+      })?.id ?? COLUMN_IDS[0],
+  );
+  const idx = COLUMN_IDS.indexOf(currentId);
+  const nextIdx = dir === "next" ? Math.min(COLUMN_IDS.length - 1, idx + 1) : Math.max(0, idx - 1);
+  const target = droppableRects.get(COLUMN_IDS[nextIdx]);
+  if (!target) return undefined;
+  event.preventDefault();
+  return {
+    x: target.left + target.width / 2 - collisionRect.width / 2,
+    y: target.top + 16,
+  };
+};
+
+const screenReaderInstructions: ScreenReaderInstructions = {
+  draggable:
+    "To pick up a logistics item, press space or enter. Use the arrow keys to move it between columns. Press space or enter again to drop it into the highlighted column, or press escape to cancel.",
+};
+
+
+
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);

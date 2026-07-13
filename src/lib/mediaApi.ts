@@ -146,3 +146,37 @@ export function useDeleteItemPhoto() {
     },
   });
 }
+
+// Upload a hero image for a room. Reuses the item-photos bucket under a
+// `rooms/{roomId}/...` path and stores a long-lived signed URL on rooms.image_url.
+export function useUploadRoomImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ roomId, file }: { roomId: string; file: File }) => {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path = `rooms/${roomId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(ITEM_PHOTOS_BUCKET)
+        .upload(path, file, {
+          cacheControl: "31536000",
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from(ITEM_PHOTOS_BUCKET)
+        .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
+      if (signErr) throw signErr;
+      const { error: updErr } = await supabase
+        .from("rooms")
+        .update({ image_url: signed.signedUrl })
+        .eq("id", roomId);
+      if (updErr) throw updErr;
+      return { roomId, url: signed.signedUrl };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["items-data"] });
+    },
+  });
+}
+

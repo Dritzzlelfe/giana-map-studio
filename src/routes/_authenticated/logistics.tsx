@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical, Calendar, Hash, Store, Clock, Home } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
+import { useItemPhotoMap } from "@/lib/mediaApi";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";
@@ -90,6 +91,8 @@ const screenReaderInstructions: ScreenReaderInstructions = {
 
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
+  const itemIds = useMemo(() => (data?.items ?? []).map((i) => i.id), [data]);
+  const { data: photoMap = {} } = useItemPhotoMap(itemIds);
   const [editing, setEditing] = useState<Item | null>(null);
   const [draggingItem, setDraggingItem] = useState<Item | null>(null);
   const update = useUpdateItem();
@@ -203,6 +206,7 @@ function LogisticsPage() {
                           items={rows}
                           data={data}
                           onEdit={setEditing}
+                          photoMap={photoMap}
                         />
                       );
                     })}
@@ -298,12 +302,14 @@ function BoardColumn({
   items,
   data,
   onEdit,
+  photoMap,
 }: {
   columnId: string;
   label: string;
   items: Item[];
   data: LoadedData;
   onEdit: (i: Item) => void;
+  photoMap: Record<string, string>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
   return (
@@ -322,7 +328,14 @@ function BoardColumn({
       </div>
       <div className="space-y-1.5">
         {items.map((it) => (
-          <BoardCard key={it.id} item={it} data={data} onEdit={onEdit} currentLocation={label} />
+          <BoardCard
+            key={it.id}
+            item={it}
+            data={data}
+            onEdit={onEdit}
+            currentLocation={label}
+            photoUrl={photoMap[it.id]}
+          />
         ))}
         {items.length === 0 && (
           <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-6 text-center text-xs italic text-muted-foreground">
@@ -340,11 +353,13 @@ function BoardCard({
   data,
   onEdit,
   currentLocation,
+  photoUrl,
 }: {
   item: Item;
   data: LoadedData;
   onEdit: (i: Item) => void;
   currentLocation: string;
+  photoUrl?: string;
 }) {
   const update = useUpdateItem();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
@@ -376,15 +391,28 @@ function BoardCard({
           <HoverCardTrigger asChild>
             <div
               aria-hidden
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]"
             >
-              <CategoryIcon categoryKey={category?.key} className="h-4 w-4" />
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <CategoryIcon categoryKey={category?.key} className="h-4 w-4" />
+              )}
             </div>
           </HoverCardTrigger>
           <HoverCardContent align="start" side="right" className="w-72 p-3">
             <div className="flex items-start gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]">
-                <CategoryIcon categoryKey={category?.key} className="h-5 w-5" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                ) : (
+                  <CategoryIcon categoryKey={category?.key} className="h-5 w-5" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-display text-sm leading-tight">{item.title}</div>

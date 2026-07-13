@@ -391,9 +391,18 @@ function BoardCard({
           <HoverCardTrigger asChild>
             <div
               aria-hidden
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[color:var(--rule-soft)] bg-[color:var(--surface-cream)] text-[color:var(--accent-brass)]"
             >
-              <CategoryIcon categoryKey={category?.key} className="h-4 w-4" />
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <CategoryIcon categoryKey={category?.key} className="h-4 w-4" />
+              )}
             </div>
           </HoverCardTrigger>
           <HoverCardContent align="start" side="right" className="w-72 p-3">

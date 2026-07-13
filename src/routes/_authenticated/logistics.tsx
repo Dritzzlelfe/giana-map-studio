@@ -160,9 +160,6 @@ function LogisticsPage() {
               <Truck className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
               <h1 className="font-display text-3xl tracking-tight">Logistique</h1>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Faites glisser les cartes entre colonnes, ou utilisez « Move to… » sur chaque carte.
-            </p>
           </div>
 
 

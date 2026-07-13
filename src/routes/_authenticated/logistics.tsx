@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Loader2, Truck, AlertTriangle, Printer, MapPin } from "lucide-react";
+import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
@@ -14,6 +14,17 @@ import {
 } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 
 export const Route = createFileRoute("/_authenticated/logistics")({
   head: () => ({ meta: [{ title: "Logistics — Project Map" }] }),
@@ -28,6 +39,11 @@ const COLUMNS: { id: string | null; label: string }[] = [
 function LogisticsPage() {
   const { data, isLoading } = useItemsData();
   const [editing, setEditing] = useState<Item | null>(null);
+  const [draggingItem, setDraggingItem] = useState<Item | null>(null);
+  const update = useUpdateItem();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
 
   const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
 
@@ -42,6 +58,23 @@ function LogisticsPage() {
     return map;
   }, [items]);
 
+  const handleDragStart = (e: DragStartEvent) => {
+    const id = String(e.active.id);
+    setDraggingItem(items.find((i) => i.id === id) ?? null);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setDraggingItem(null);
+    if (!e.over) return;
+    const itemId = String(e.active.id);
+    const overCol = String(e.over.id);
+    const newLoc = overCol === "__unset" ? null : overCol;
+    const it = items.find((i) => i.id === itemId);
+    if (!it) return;
+    if ((it.logistics_location ?? null) === newLoc) return;
+    update.mutate({ id: itemId, patch: { logistics_location: newLoc } });
+  };
+
   return (
     <AppShell>
       <div className="flex-1 overflow-auto p-6">
@@ -49,7 +82,7 @@ function LogisticsPage() {
           <Truck className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
           <h2 className="font-display text-lg font-semibold">Logistics</h2>
           <span className="ml-2 text-xs text-muted-foreground">
-            Drag-and-drop deferred — use each card's "Move to…" for now.
+            Drag cards between columns, or use each card's "Move to…".
           </span>
         </div>
 
@@ -74,22 +107,38 @@ function LogisticsPage() {
               </TabsList>
 
               <TabsContent value="board" className="mt-4">
-                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
-                  {COLUMNS.map((col) => {
-                    const key = col.id ?? "__unset";
-                    const rows = byColumn.get(key) ?? [];
-                    return (
-                      <BoardColumn
-                        key={key}
-                        label={col.label}
-                        items={rows}
-                        data={data}
-                        onEdit={setEditing}
-                      />
-                    );
-                  })}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragCancel={() => setDraggingItem(null)}
+                >
+                  <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+                    {COLUMNS.map((col) => {
+                      const key = col.id ?? "__unset";
+                      const rows = byColumn.get(key) ?? [];
+                      return (
+                        <BoardColumn
+                          key={key}
+                          columnId={key}
+                          label={col.label}
+                          items={rows}
+                          data={data}
+                          onEdit={setEditing}
+                        />
+                      );
+                    })}
+                  </div>
+                  <DragOverlay>
+                    {draggingItem && (
+                      <div className="rounded border bg-card p-2 text-xs shadow-lg opacity-95">
+                        <div className="font-medium truncate">{draggingItem.title}</div>
+                      </div>
+                    )}
+                  </DragOverlay>
+                </DndContext>
               </TabsContent>
+
 
               <TabsContent value="manifest" className="mt-4">
                 <ManifestTable
@@ -165,18 +214,27 @@ function PendingBanner({
 }
 
 function BoardColumn({
+  columnId,
   label,
   items,
   data,
   onEdit,
 }: {
+  columnId: string;
   label: string;
   items: Item[];
   data: LoadedData;
   onEdit: (i: Item) => void;
 }) {
+  const { setNodeRef, isOver } = useDroppable({ id: columnId });
   return (
-    <div className="rounded-md border bg-muted/20 p-2">
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "rounded-md border bg-muted/20 p-2 transition-colors",
+        isOver && "border-[color:var(--primary)] bg-[color:var(--primary)]/10",
+      )}
+    >
       <div className="mb-2 flex items-center justify-between">
         <div className="label-micro">{label}</div>
         <span className="text-xs text-muted-foreground">{items.length}</span>
@@ -195,6 +253,7 @@ function BoardColumn({
   );
 }
 
+
 function BoardCard({
   item,
   data,
@@ -207,20 +266,39 @@ function BoardCard({
   currentLocation: string;
 }) {
   const update = useUpdateItem();
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   return (
-    <div className="rounded border bg-card p-2 text-xs">
-      <button className="w-full text-left hover:underline" onClick={() => onEdit(item)}>
-        <div className="flex items-start justify-between gap-1">
-          <span className="font-medium truncate">{item.title}</span>
-          <StatusBadge status={item.status} />
-        </div>
-        <div className="mt-0.5 text-muted-foreground">
-          {item.room_id ? data.roomById[item.room_id]?.name : "—"}
-          {item.vendor_id && (
-            <span> · {data.vendorById[item.vendor_id]?.name}</span>
-          )}
-        </div>
-      </button>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "rounded border bg-card p-2 text-xs",
+        isDragging && "opacity-40",
+      )}
+    >
+      <div className="flex items-start gap-1">
+        <button
+          type="button"
+          className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
+          aria-label="Drag to move"
+          {...listeners}
+          {...attributes}
+        >
+          <GripVertical className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+        <button className="flex-1 text-left hover:underline" onClick={() => onEdit(item)}>
+          <div className="flex items-start justify-between gap-1">
+            <span className="font-medium truncate">{item.title}</span>
+            <StatusBadge status={item.status} />
+          </div>
+          <div className="mt-0.5 text-muted-foreground">
+            {item.room_id ? data.roomById[item.room_id]?.name : "—"}
+            {item.vendor_id && (
+              <span> · {data.vendorById[item.vendor_id]?.name}</span>
+            )}
+          </div>
+        </button>
+      </div>
+
       <div className="mt-1.5">
         <Popover>
           <PopoverTrigger asChild>

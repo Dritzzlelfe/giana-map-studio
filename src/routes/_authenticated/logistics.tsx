@@ -93,7 +93,27 @@ function LogisticsPage() {
   const update = useUpdateItem();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: columnCoordinateGetter }),
   );
+
+  const announcements: Announcements = useMemo(() => {
+    const titleOf = (id: string) =>
+      items.find((i) => i.id === id)?.title ?? "item";
+    return {
+      onDragStart: ({ active }) =>
+        `Picked up ${titleOf(String(active.id))}. Use arrow keys to move between columns.`,
+      onDragOver: ({ active, over }) =>
+        over
+          ? `${titleOf(String(active.id))} is over ${COLUMN_LABEL[String(over.id)] ?? "column"}.`
+          : `${titleOf(String(active.id))} is no longer over a column.`,
+      onDragEnd: ({ active, over }) =>
+        over
+          ? `Dropped ${titleOf(String(active.id))} into ${COLUMN_LABEL[String(over.id)] ?? "column"}.`
+          : `Dropped ${titleOf(String(active.id))}. It was not moved.`,
+      onDragCancel: ({ active }) =>
+        `Cancelled moving ${titleOf(String(active.id))}.`,
+    };
+  }, [items]);
 
   const items = useMemo(() => (data?.items ?? []).filter((i) => !i.is_fee), [data]);
 

@@ -450,6 +450,7 @@ export function ItemDrawer({ item, data, open, onOpenChange }: Props) {
                 rows={3}
               />
             </Field>
+            <ItemPhotoUploader itemId={item.id} />
             <MediaStrip productId={item.product_id} />
           </div>
         </Section>

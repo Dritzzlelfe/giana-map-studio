@@ -94,9 +94,9 @@ function MatrixPage() {
 
             <div className="mt-0 flex-1 overflow-auto">
               <table className="matrix-table w-full border-separate border-spacing-0 text-sm">
-                <thead className="sticky top-0 z-10 bg-paper">
+                <thead className="sticky top-0 z-20 bg-paper">
                   <tr>
-                    <th className="sticky left-0 z-20 bg-paper px-4 py-3 text-left align-bottom hairline-b hairline-r">
+                    <th className="sticky left-0 top-0 z-30 bg-paper px-4 py-3 text-left align-bottom hairline-b hairline-r">
                       <div className="label-micro">Room</div>
                     </th>
                     {categories.map((c) => (

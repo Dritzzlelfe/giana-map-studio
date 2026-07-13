@@ -30,7 +30,8 @@ function RoomPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const room = data?.roomById[roomId] ?? null;
-  const heroUrl = room?.image_url ?? heroAsset.url;
+  const { data: signedHero } = useSignedItemPhotoUrl(room?.image_url);
+  const heroUrl = signedHero ?? heroAsset.url;
 
   return (
     <AppShell>

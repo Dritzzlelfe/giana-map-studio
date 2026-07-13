@@ -110,8 +110,8 @@ function DashboardPage() {
               />
             </section>
             {(totals.hasMaskedCommitted || totals.hasMaskedOptions) && (
-              <p className="text-xs italic text-muted-foreground">
-                Certains montants sont masqués par votre rôle — les totaux excluent les lignes masquées.
+              <p className="text-xs text-muted-foreground">
+                Montants partiellement masqués par votre rôle.
               </p>
             )}
 

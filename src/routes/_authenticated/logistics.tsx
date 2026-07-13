@@ -533,7 +533,7 @@ function InstallDay({ items, data }: { items: Item[]; data: LoadedData }) {
   return (
     <div className="rounded-md border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-display text-base font-semibold">Install day — converging on residence</h3>
+        <h3 className="font-display text-base font-semibold">Install day</h3>
         <Button variant="outline" size="sm" onClick={() => window.print()}>
           <Printer className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Print
         </Button>

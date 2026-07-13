@@ -180,3 +180,29 @@ export function useUploadRoomImage() {
   });
 }
 
+export function useDeleteRoomImage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ roomId, fileUrl }: { roomId: string; fileUrl: string | null }) => {
+      if (fileUrl) {
+        const match = fileUrl.match(/\/object\/sign\/item-photos\/([^?]+)/);
+        if (match) {
+          await supabase.storage
+            .from(ITEM_PHOTOS_BUCKET)
+            .remove([decodeURIComponent(match[1])]);
+        }
+      }
+      const { error } = await supabase
+        .from("rooms")
+        .update({ image_url: null })
+        .eq("id", roomId);
+      if (error) throw error;
+      return { roomId };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["items-data"] });
+    },
+  });
+}
+
+

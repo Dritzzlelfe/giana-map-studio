@@ -1,97 +1,90 @@
-## M4 — Import the real Candida Smith data
+# M3 — Money & Logistics live (revised)
 
-Two schema tweaks, one importer, one small app-side rule. No RLS / view / grant / trigger changes.
+Three chantiers, verified in order. No security surface touched: RLS, `app_private.*`, `enforce_money_write`, grants, and `*_visible` views stay as-is. Money reads only through `budgets_visible`, `room_targets_visible`, `payments_visible`, `items_visible`; writes go through base tables and pass through `enforce_money_write`. Business columns added via normal idempotent migrations. `budgetMath.ts` is the single source of spend/gap/lane math.
 
-### 1. Migration (idempotent) — `supabase/migrations/<ts>_m4_import_prep.sql`
+---
 
-On `public.items`:
-- `ALTER COLUMN room_id DROP NOT NULL` (already nullable per current schema — confirmed, so this step is a no-op assertion via `DO $$ ... $$`).
-- `ADD COLUMN IF NOT EXISTS is_fee boolean NOT NULL DEFAULT false`
-- `ADD COLUMN IF NOT EXISTS import_source text`
-- `ADD COLUMN IF NOT EXISTS programa_status text`
-- Partial index: `CREATE INDEX IF NOT EXISTS items_is_fee_idx ON public.items(is_fee) WHERE is_fee`.
+## Schema migration (runs before Chantier 1)
 
-On `public.products`:
-- `ADD COLUMN IF NOT EXISTS doc_code text`
-- `ADD COLUMN IF NOT EXISTS colour text`
-- `ADD COLUMN IF NOT EXISTS width_text text`, `length_text text`, `height_text text`, `depth_text text` (the file's dims are free-form strings like "31.5 inches"; the existing numeric `*_in` columns stay untouched and empty for imported rows).
-- `CREATE UNIQUE INDEX IF NOT EXISTS products_doc_code_uidx ON public.products(doc_code) WHERE doc_code IS NOT NULL` (Giana's inventory codes are meant to be unique).
+One idempotent migration, no security surface touched:
 
-No changes to `enforce_money_write`, `app_private.*`, any `*_visible` view, RLS policies, or GRANTs. `service_role` already has `ALL` on these tables (default in Cloud), so writes and new columns are reachable.
+- `ALTER TABLE budgets ADD COLUMN IF NOT EXISTS scope text NOT NULL DEFAULT 'project'` with a CHECK for `('project','roof_deck')`; partial unique index on `(project_id, scope)` so each project holds at most one row per scope. `budgets_visible` already selects `*` so `scope` surfaces automatically — verify, and if it column-lists, extend it (still definer, no policy change).
+- `ALTER TABLE payments ADD COLUMN IF NOT EXISTS notes text`. Same check for `payments_visible`.
+- `ALTER TABLE categories ADD COLUMN IF NOT EXISTS axis text` with CHECK `('construction','ffe')`; backfill:
+  - construction: `plumbing, electrical, av, finish, tile_stone, floor, paint, wallpaper, door, hardware, fencing, kitchen`
+  - ffe: `furniture, upholstery, drapery`
+  - leave any unmatched key null and log them from the migration for Giana to classify.
 
-### 2. Importer — `scripts/import_programa.ts` + `scripts/README.md` entry
+Comment in `categories.ts`: "Fees follow their item's category axis. Project-level fees (no category) count toward construction by default."
 
-One-shot Node/TS script, run with `bun scripts/import_programa.ts <path-to-json>` (default: `/mnt/user-uploads/gad_m4_import.json`). Connects with `pg` using `PG*` env vars (no Supabase JS — we need a single session in which we `SET LOCAL request.jwt.claims`). Executed as `service_role` DB role (default from `PG*`), so RLS is bypassed but the `enforce_money_write` trigger still runs.
+---
 
-Flow, all in ONE transaction:
+## Chantier 1 — Budget module (`/budget`)
 
-1. Resolve the Candida Smith `project_id` (`SELECT id FROM projects WHERE name='Candida Smith'`).
-2. Pick a full-visibility owner profile:
-   `SELECT p.id FROM profiles p JOIN roles r ON r.id=p.role_id WHERE r.money_visibility='full' ORDER BY r.key='owner' DESC, r.key='super_admin' DESC LIMIT 1`.
-   Fail loudly if none exists.
-3. `SET LOCAL request.jwt.claims = json_build_object('sub', <that profile id>, 'role', 'authenticated')::text` — makes `app_private.current_money_visibility()` return `'full'`, so the money-write trigger sees a legitimate `full` caller (per user instruction: pass THROUGH the guard, not around it).
-4. Preload lookup maps: rooms by exact name, categories by key, existing vendors by lowercased name, existing products by id.
-5. Two-pass validation over the JSON BEFORE any write:
-   - `room` non-null must exist in rooms map; otherwise reject.
-   - `category` must exist in categories map, unless `is_fee=true` (fees allowed null category).
-   - `programa_status` must be one of `paid | partial_payment | invoiced | client_review`; otherwise reject.
-   - `room=null` allowed only when `is_fee=true` OR the row is the single "project-wide" case (`room=null AND is_fee=false`), which we simply allow because it's inferred, not flagged.
-   - Numeric parse of `gad_cost` / `client_price` after stripping commas; empty/null → `NULL`.
-   - Report all rejects to stdout and, if any, `ROLLBACK` and exit non-zero. Do not silently skip.
-6. Resolve vendors per row:
-   - `supplier=null` → `vendor_id=null`.
-   - `supplier="Giana Allen Design"` → upsert vendor named `"Giana Allen Design (inventory)"` with `account_status='purchased_from'`, `contact_info=supplier_email`.
-   - Otherwise match case-insensitive against `vendors.name`; if none, insert with `account_status='purchased_from'` and `contact_info=supplier_email`.
-   Cache newly-created vendor ids in the same pass.
-7. Upsert products (`ON CONFLICT (id) DO NOTHING`, keyed by the file's deterministic uuid5 `product_id`):
-   `name, brand, sku, doc_code, colour, finish, material, width_text, length_text, height_text, depth_text, default_vendor_id` (resolved vendor).
-   Deterministic uuids + shared `product_id` across multiple items (e.g. FR155 in two rooms) collapse to a single product row automatically.
-8. Upsert items (`ON CONFLICT (id) DO NOTHING`, keyed by `item_id`):
-   `project_id, product_id, room_id (may be NULL), category_id (may be NULL when is_fee), vendor_id, title=name, description, sku, lead_time, qty_needed=parseNumeric(qty), gad_cost, client_price, gad_paid_vendor, is_fee, programa_status, import_source='programa_2026-07-13'`, and mapped `status`:
-   - `paid` → `ordered`
-   - `partial_payment` → `ordered`
-   - `invoiced` → `committed`
-   - `client_review` → `committed`
-   The original value is preserved verbatim in `programa_status`.
-   The `items_autofill_context` trigger will still fire but is a no-op because we always supply `project_id` and `product_id`.
-9. Validation report BEFORE `COMMIT`, printed:
-   - counts: items = 181, products = 153.
-   - per-room item counts, checked against the expected: Living Room 34, Dining Room / Living Room 30, Roof Deck 19, Master Bedroom 17, Kitchen 15, Bedroom 3 11, Master Bathroom 10, Bedroom 2 8, Powder Room 6, Foyer 5, Bathroom 2 5, Hallway 5, project-level (room_id IS NULL) 16.
-   - sum of `client_price` across items ≈ $700,637 (log actual; tolerate ±$50 rounding). Any mismatch → print diff and `ROLLBACK`.
-   - counts of `is_fee=true` and `room_id IS NULL AND is_fee=false` (should be exactly 1, French Oak).
-10. `COMMIT` on success; script exits 0.
+**Route & nav.** New `src/routes/_authenticated/budget.tsx`, module `budget`. Nav entry between Schedule and (future) Logistics in `AppShell`.
 
-Idempotency: re-running the script hits `ON CONFLICT DO NOTHING` on both products and items and produces the same validation report unchanged.
+**Data layer.**
+- `src/lib/budgetsApi.ts` + `useBudgets.ts`: read `budgets_visible` (money null for masked roles), write `budgets` (guarded). Query returns rows keyed by `scope`; UI reads `project` and `roof_deck` rows independently.
+- `useRoomTarget` already exists; add `useUpdateRoomTarget` (guarded write to `rooms.target_amount`).
+- Extend `budgetMath.ts`:
+  - `perUnitSuggestion(item, rates)` — pure helper returning `{ rate, unit, suggested }` or null. Not applied to totals in M3; surfaced in the item drawer as a suggestion so the auto-recompute lands later without touching screens.
+  - `roomBudgetRow(items, roomId, target)` → `{ target, committed, options, gap, status }` (reuses `roomSpend` + `gap`).
+  - `projectLevelSpend(items)` — items with `room_id === null` (fees included), for the "Project-wide costs" row.
+  - `axisSpend(items, categories, axis)` — split by `categories.axis`; fees inherit their item's category axis; project-level fees (null category) count as `construction`.
 
-Add an npm script `import:programa` in `package.json`.
+**Screen layout.**
+1. **Global zone** — two side-by-side cards (Construction / FF&E), each showing total budget (inline-editable for full-visibility), axis spend, and a per-unit rates editor (`per_unit_rates` jsonb: add/edit/delete rows). Masked roles see placeholders and read-only rates.
+2. **Roof Deck block** — separate card fed by the `scope='roof_deck'` budget row: target, committed, options, gap, plus note "Separately signed by Candida, includes all dunnage; also rolls into the project total."
+3. **Rooms table** — one row per room, rendered twice side by side (Construction | FF&E) via `axisSpend`. Columns: Target (inline edit), Committed, Options (never merged with committed), Gap, status dot. Row click → `/room/$roomId`. Final "Project-wide costs" row using `projectLevelSpend`.
 
-### 3. App-side exclusion — `src/lib/budgetMath.ts` and matrix/room/schedule fetchers
+**Client "Room decision summary" export.** Per-room button opens a printable view (`/budget/room-summary/$roomId` sub-route or dialog) listing committed items with title, vendor, qty, and CLIENT price only. Enforced by projecting only `client_price` from `items_visible`. No `gad_cost`, no margin, ever.
 
-Single implementation point per user instruction:
+---
 
-- In `roomSpend(items, roomId)`: keep summing `client_price`, but include `is_fee` items scoped to that room in the room's committed total. Nothing else changes there (fees are already committed by our status mapping).
-- Add `projectSpend(items)` in the same file: total committed + options across all items, including project-level (`room_id IS NULL`) and `is_fee` rows. Used later by the project-total roll-up in the Dashboard.
-- In every list that displays the Matrix, room grid, or trade schedule, filter out `is_fee` and `room_id === null`. Concretely:
-  - `src/components/items/ItemsTable.tsx` used by Matrix / Room views: apply the filter at the caller — `src/routes/_authenticated/index.tsx` (dashboard matrix) and `src/routes/_authenticated/room.$roomId.tsx` (room grid).
-  - `src/routes/_authenticated/schedule.$categoryKey.tsx` and `schedule.index.tsx`: same filter before grouping.
-  Do NOT change `loadAll()` — the raw data still includes fees; only the *views* exclude them, because Budget/Dashboard totals need them.
+## Chantier 2 — Cashflow & cash calls (`/cashflow`)
 
-### 4. Do NOT
+**Route & nav.** New `src/routes/_authenticated/cashflow.tsx`, module `cashflow`, nav after Budget.
 
-- Do not touch `enforce_money_write`, `app_private.*`, `*_visible` views, RLS policies, or GRANTs.
-- Do not create Payments rows.
-- Do not import media.
-- Do not add a UI trigger for the importer — it stays a one-shot script.
+**Data layer.**
+- `useAllPayments()` reads `payments_visible` (now including `notes`); joins client-side with `items_visible` (title, room) and `phases`.
+- `usePhases()` reads `phases` ordered by `sort_order`.
+- Extend `budgetMath.ts`:
+  - `pivotPayments(payments, axis: 'month'|'phase', phases)` → matrix `{ column, clientLane, vendorLane, cells }`.
+  - `reservedTotal(payments)` and `upcomingSorted(payments)`.
+  - `dashboardCashCard(payments, now)` → `{ thisMonth: { client, vendor }, nextMonth: { client, vendor } }`.
 
-### Verify after M4
+**Screen layout.**
+1. **Pivot** — Month | Phase toggle. Two lanes per column (client → GAD, GAD → vendor). Cell shows summed amount + count; click opens a drawer listing the payments, each row uses the M2 payment editor.
+2. **Reserved panel** — `state === 'reserved'` payments with total; copy "Not GAD's until ordered". Note: "Cross-project view will appear once a second project exists."
+3. **Upcoming list** — sorted by `due_date`. Actions: **Mark paid** (guarded write `state='paid'`); **Move to phase** (select → update `phase_id` AND append audit line to `payments.notes`: `"[YYYY-MM-DD HH:mm] <user email> moved from <old phase> to <new phase>"`).
+4. **Cash call export** — dialog "Generate cash call": pick date + phase range → printable/copyable list, client → GAD amounts ONLY, grouped by phase, Construction and FF&E side by side.
+5. **Empty state** — with zero rows in `payments_visible`: card explaining "Payments will appear as they are entered or imported from the reconciliation" + primary "Add payment" button opening item picker → M2 payment editor. No fabrication from item statuses.
 
-- `bun scripts/import_programa.ts` prints the validation report with 181 / 153 / expected per-room counts and total ≈ $700,637, then exits 0.
-- Re-running is a no-op (no new rows, same report).
-- `bun run test:security` still green.
-- In the app: Matrix and room grid show no fee rows and no project-level rows; a room's BudgetStrip committed total includes that room's fees; a fee item is still openable via its own `id` if navigated to directly (nothing hides it at the row level).
-- `psql -c "SELECT count(*) FROM items WHERE import_source='programa_2026-07-13'"` returns 181.
+**Dashboard wiring.** Extend the M2 money card with a "This month / Next month" block driven by `dashboardCashCard`; two rows (client / vendor lane), masked-aware. Same math source.
 
-### Deferred / open
+---
 
-- Project-level total UI (Dashboard "Project total" card) — the math is ready in `projectSpend`, but wiring the card is out of scope for M4 unless you want it now.
-- Media, payments, inventory linkage of "Giana Allen Design (inventory)" vendor to the Inventory module — later milestones.
+## Chantier 3 — Logistics board (`/logistics`)
+
+**Route & nav.** New `src/routes/_authenticated/logistics.tsx`, module `logistics`.
+
+**Data layer.**
+- Reuse `useItemsData` (already merges `is_fee` and non-money fields). Filter `!is_fee`.
+- Existing `useUpdateItem` writes `logistics_location` and `delivery_address_pending`; `updated_at` refreshes via trigger.
+
+**Screen layout.**
+1. **Pending addresses banner** — sticky top strip listing items with `delivery_address_pending === true`; "Confirm address" opens the M2 item drawer at the address field.
+2. **Board** — columns from `LOGISTICS_LOCATIONS` plus an "Unset" column for null. Compact cards: title, room name, vendor name, status dot. Drag-and-drop between columns via `@dnd-kit/core`; if not installed, fall back to a one-tap "Move to…" popover (reported as deferred, not blocking).
+3. **Parties panel** — right sidebar listing vendors + people with logistics roles (Paige, Brownstone Movers, storage). Name, address, phone from existing fields. Explicit callout: "Open point: PC Richard storage facility name TBC."
+4. **Manifest view** — tab "France container manifest": items in `('france_ship','mississippi_truck','mississippi_warehouse')`, printable.
+5. **Install-day view** — tab "Install day": every item not yet at residence grouped by current `logistics_location`, printable.
+
+---
+
+## Verification (after each chantier)
+
+- `bun run test:security` green; no RLS/policy/view/function/grant/trigger changed (only column adds).
+- Preview-as `money_visibility='none'`: every money figure on the new screens is placeholder; cash call and room summary render redacted/empty.
+- `rg` shows no spend/gap/lane arithmetic outside `budgetMath.ts`.
+- With zero payments: `/cashflow` and the Dashboard cash card show empty state, no fabricated rows.
+- Report anything deferred (dnd library fallback, unclassified categories from the axis backfill, etc.).

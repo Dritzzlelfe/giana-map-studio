@@ -14,19 +14,19 @@ import {
   Wallet,
   Banknote,
   Truck,
+  Menu,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
   hasRight,
   useCurrentProfile,
   usePreviewRoleKey,
   type ModuleKey,
 } from "@/lib/useCurrentProfile";
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import logoAsset from "@/assets/giana-allen-logo.webp.asset.json";
 
 

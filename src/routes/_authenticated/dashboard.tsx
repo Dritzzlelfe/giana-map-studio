@@ -241,6 +241,33 @@ function Card({
   );
 }
 
+function Metric({
+  label,
+  value,
+  masked,
+  count,
+}: {
+  label: string;
+  value: number | null;
+  masked: boolean;
+  count: number;
+}) {
+  return (
+    <div className="rounded border bg-muted/20 p-3">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 num-tabular text-2xl font-light tracking-tight">
+        {value == null ? "—" : fmtMoney(value)}
+        {masked && value != null && (
+          <span className="ml-1 text-xs font-normal text-muted-foreground">·  partial</span>
+        )}
+      </div>
+      <div className="mt-0.5 text-xs text-muted-foreground">
+        {count} {count === 1 ? "item" : "items"}
+      </div>
+    </div>
+  );
+}
+
 function ItemList({
   items,
   data,

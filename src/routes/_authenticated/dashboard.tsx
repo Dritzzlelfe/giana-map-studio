@@ -314,15 +314,17 @@ function Metric({
   masked,
   count,
   icon: Icon,
+  to,
 }: {
   label: string;
   value: number | null;
   masked: boolean;
   count: number;
   icon?: import("lucide-react").LucideIcon;
+  to?: string;
 }) {
-  return (
-    <div className="relative overflow-hidden rounded-md border border-[color:var(--rule-soft)] bg-card p-5 shadow-[var(--shadow-cell)]">
+  const body = (
+    <>
       <span
         aria-hidden
         className="absolute inset-x-0 top-0 h-px"
@@ -351,8 +353,24 @@ function Metric({
       <div className="mt-2 text-xs text-muted-foreground">
         {count} {count === 1 ? "item" : "items"}
       </div>
-    </div>
+    </>
   );
+
+  const baseClass =
+    "relative block overflow-hidden rounded-md border border-[color:var(--rule-soft)] bg-card p-5 shadow-[var(--shadow-cell)]";
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={`${baseClass} group cursor-pointer transition-all hover:-translate-y-0.5 hover:border-[color:var(--accent-brass)] hover:shadow-[var(--shadow-editorial)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent-brass)]`}
+        aria-label={`${label} — voir le détail`}
+      >
+        {body}
+      </Link>
+    );
+  }
+  return <div className={baseClass}>{body}</div>;
 }
 
 function CashBucket({

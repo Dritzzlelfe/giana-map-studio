@@ -57,7 +57,7 @@ export function BudgetStrip({ roomId, items }: { roomId: string; items: Item[] }
               setEditing(true);
             }}
           >
-            {targetVal != null ? `$${targetVal.toLocaleString()}` : "— set target"}
+            {targetVal != null ? `$${targetVal.toLocaleString()}` : "Définir"}
           </button>
         )}
       </Cell>

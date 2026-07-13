@@ -177,10 +177,6 @@ function GlobalZone({
 
       <div className="rounded-md border bg-card p-4 md:col-span-2">
         <h3 className="mb-2 font-display text-base font-semibold">Per-unit rates</h3>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Displayed as a suggestion on matching items only. Not applied to totals in this milestone —
-          the calculator hook is wired for the next pass.
-        </p>
         {money !== "full" ? (
           <p className="italic text-muted-foreground">Hidden by your role.</p>
         ) : (
@@ -594,7 +590,7 @@ function RoomRow({
               setEditing(true);
             }}
           >
-            {row.target != null ? fmt(row.target) : "— set"}
+            {row.target != null ? fmt(row.target) : "Définir"}
           </button>
         )}
       </td>

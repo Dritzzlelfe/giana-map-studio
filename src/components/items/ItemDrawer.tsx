@@ -505,7 +505,7 @@ function ProductIdentityBlock({ productId }: { productId: string | null }) {
   return (
     <Section
       label="Product identity"
-      hint="Shared across projects — editing here changes it everywhere"
+      hint="Partagé entre projets"
     >
       {!product ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -862,8 +862,8 @@ function ItemPhotoUploader({ itemId }: { itemId: string }) {
       {isLoading ? (
         <div className="text-xs text-muted-foreground">Loading…</div>
       ) : photos.length === 0 ? (
-        <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-4 text-center text-xs italic text-muted-foreground">
-          No photo yet — the first upload becomes the card thumbnail.
+        <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-4 text-center text-xs text-muted-foreground">
+          Aucune photo.
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">

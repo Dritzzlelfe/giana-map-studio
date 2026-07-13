@@ -182,6 +182,7 @@ function LogisticsPage() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   onDragCancel={() => setDraggingItem(null)}
+                  accessibility={{ announcements, screenReaderInstructions }}
                 >
                   <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
                     {COLUMNS.map((col) => {

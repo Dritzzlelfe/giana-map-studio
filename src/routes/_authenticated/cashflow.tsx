@@ -89,24 +89,29 @@ function CashflowPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Banknote className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-          <h2 className="font-display text-lg font-semibold">Cashflow</h2>
-          {money === "none" && (
-            <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
-              Amounts hidden by your role
-            </span>
-          )}
-          <div className="ml-auto flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCashCallOpen(true)} disabled={isEmpty}>
-              <Printer className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Cash call
-            </Button>
-            <Button size="sm" onClick={() => setAddOpen(true)} disabled={!items}>
-              <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add payment
-            </Button>
+      <div className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
+            <div className="editorial-eyebrow mb-2">Trésorerie · réel uniquement</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Banknote className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
+              <h1 className="font-display text-3xl tracking-tight">Cashflow</h1>
+              {money === "none" && (
+                <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs italic text-muted-foreground">
+                  Montants masqués par votre rôle
+                </span>
+              )}
+              <div className="ml-auto flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCashCallOpen(true)} disabled={isEmpty}>
+                  <Printer className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Cash call
+                </Button>
+                <Button size="sm" onClick={() => setAddOpen(true)} disabled={!items}>
+                  <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add payment
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+
 
         {(itemsLoading || pLoading) && (
           <div className="text-muted-foreground">
@@ -172,6 +177,7 @@ function CashflowPage() {
           payments={enriched}
           phases={phases}
         />
+        </div>
       </div>
     </AppShell>
   );
@@ -179,18 +185,20 @@ function CashflowPage() {
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="mx-auto max-w-lg rounded-md border border-dashed bg-card p-10 text-center">
+    <div className="mx-auto max-w-xl rounded-md border border-dashed border-[color:var(--accent-brass)]/40 bg-card p-12 text-center shadow-[var(--shadow-cell)]">
       <Banknote
-        className="mx-auto mb-3 h-8 w-8 text-muted-foreground"
-        strokeWidth={1.5}
+        className="mx-auto mb-4 h-10 w-10 text-[color:var(--accent-brass)]"
+        strokeWidth={1.25}
       />
-      <h3 className="font-display text-base font-semibold">No payments yet</h3>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Payments will appear here as they are entered or imported from the financial
-        reconciliation. Nothing is fabricated from item statuses.
+      <h3 className="font-display text-2xl tracking-tight text-foreground">
+        Aucun paiement enregistré
+      </h3>
+      <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
+        Les paiements apparaissent ici à mesure qu'ils sont saisis ou importés de la
+        réconciliation financière. Rien n'est fabriqué à partir du statut des items.
       </p>
-      <Button className="mt-4" onClick={onAdd}>
-        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add first payment
+      <Button className="mt-6" onClick={onAdd}>
+        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Ajouter un premier paiement
       </Button>
     </div>
   );

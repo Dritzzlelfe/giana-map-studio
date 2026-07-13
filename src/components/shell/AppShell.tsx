@@ -99,12 +99,20 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
       <Toaster richColors position="top-right" />
       <header className="shrink-0 border-b border-[color:var(--rule-soft)] bg-paper">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-6 px-8 py-4">
-          <Link to="/" className="flex min-w-0 items-center">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
             <img
               src={logoAsset.url}
               alt="Giana Allen Design"
               className="h-8 w-auto object-contain"
             />
+            <span
+              aria-hidden
+              className="hidden h-6 w-px sm:block"
+              style={{ background: "var(--accent-brass)", opacity: 0.5 }}
+            />
+            <span className="hidden font-display text-base italic tracking-tight text-[color:var(--walnut)] sm:inline">
+              Atelier
+            </span>
           </Link>
 
           <nav className="ml-2 flex items-center gap-1">
@@ -118,16 +126,17 @@ export function AppShell({ children, right }: { children: ReactNode; right?: Rea
                   className={cn(
                     "label-micro relative inline-flex items-center gap-1.5 px-3 py-2 transition-colors",
                     active
-                      ? "text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-[2px] after:bg-[color:var(--primary)]"
+                      ? "text-foreground after:absolute after:inset-x-2 after:-bottom-[13px] after:h-[2px] after:bg-[color:var(--accent-brass)]"
                       : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  <Icon className="h-3.5 w-3.5" strokeWidth={1.25} />
                   {n.label}
                 </Link>
               );
             })}
           </nav>
+
           <div className="flex-1" />
           {right}
           {previewKey && (

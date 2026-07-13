@@ -147,14 +147,19 @@ function LogisticsPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 overflow-auto p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Truck className="h-5 w-5 text-[color:var(--primary)]" strokeWidth={1.5} />
-          <h2 className="font-display text-lg font-semibold">Logistics</h2>
-          <span className="ml-2 text-xs text-muted-foreground">
-            Drag cards between columns, or use each card's "Move to…".
-          </span>
-        </div>
+      <div className="flex-1 overflow-auto p-6 lg:p-8">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="mb-6 border-b border-[color:var(--rule-soft)] pb-5">
+            <div className="editorial-eyebrow mb-2">France · Mississippi · Résidence</div>
+            <div className="flex items-center gap-3">
+              <Truck className="h-6 w-6 text-[color:var(--accent-brass)]" strokeWidth={1.25} />
+              <h1 className="font-display text-3xl tracking-tight">Logistique</h1>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Faites glisser les cartes entre colonnes, ou utilisez « Move to… » sur chaque carte.
+            </p>
+          </div>
+
 
         {isLoading && (
           <div className="text-muted-foreground">
@@ -243,6 +248,7 @@ function LogisticsPage() {
           open={!!editing}
           onOpenChange={(o) => !o && setEditing(null)}
         />
+        </div>
       </div>
     </AppShell>
   );
@@ -302,20 +308,22 @@ function BoardColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-md border bg-muted/20 p-2 transition-colors",
-        isOver && "border-[color:var(--primary)] bg-[color:var(--primary)]/10",
+        "rounded-md border border-[color:var(--rule-soft)] bg-[color:var(--surface-sand)]/60 p-3 transition-colors",
+        isOver && "border-[color:var(--accent-brass)] bg-[color:var(--accent-brass)]/10",
       )}
     >
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between border-b border-[color:var(--rule-soft)] pb-2">
         <div className="label-micro">{label}</div>
-        <span className="text-xs text-muted-foreground">{items.length}</span>
+        <span className="serif-num text-lg text-[color:var(--accent-brass)]">
+          {items.length}
+        </span>
       </div>
       <div className="space-y-1.5">
         {items.map((it) => (
           <BoardCard key={it.id} item={it} data={data} onEdit={onEdit} currentLocation={label} />
         ))}
         {items.length === 0 && (
-          <div className="rounded border border-dashed p-4 text-center text-xs text-muted-foreground">
+          <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-6 text-center text-xs italic text-muted-foreground">
             —
           </div>
         )}

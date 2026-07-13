@@ -6,6 +6,7 @@ import { rollupStatus, countOptions, isVisibleInGrid, type Category, type Item, 
 import { StatusDot } from "@/components/items/StatusDot";
 import { CellPanel } from "@/components/items/CellPanel";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -70,13 +71,14 @@ function MatrixPage() {
         <div className="flex-1 overflow-hidden bg-paper">
           <div className="mx-auto flex h-full max-w-[1600px] flex-col px-8 pt-8">
             <header className="pb-5">
-              <div className="label-micro">Project</div>
-              <h1 className="mt-1 text-3xl font-light tracking-tight">
+              <div className="editorial-eyebrow mb-2">Projet · Rooms × trades</div>
+              <h1 className="font-display text-4xl tracking-tight text-foreground">
                 {data.rooms[0] ? "Candida Smith" : "Project"}
               </h1>
-              <div className="mt-1 text-sm text-muted-foreground">
-                Rooms × trades — the full plan at a glance.
+              <div className="mt-2 text-sm text-muted-foreground">
+                Le plan complet, en un regard.
               </div>
+              <hr className="brass-rule mt-5" />
             </header>
 
             <div className="flex items-end justify-between border-b border-[color:var(--rule-soft)] pb-3">
@@ -86,7 +88,7 @@ function MatrixPage() {
                   type="checkbox"
                   checked={hideEmptyCols}
                   onChange={(e) => setHideEmptyCols(e.target.checked)}
-                  className="h-3 w-3 accent-[color:var(--primary)]"
+                  className="h-3 w-3 accent-[color:var(--accent-brass)]"
                 />
                 Hide empty trades
               </label>
@@ -107,8 +109,12 @@ function MatrixPage() {
                         <Link
                           to="/schedule/$categoryKey"
                           params={{ categoryKey: c.key }}
-                          className="label-micro hover:text-foreground"
+                          className="label-micro inline-flex items-center gap-1.5 hover:text-foreground"
                         >
+                          <CategoryIcon
+                            categoryKey={c.key}
+                            className="h-3 w-3 text-[color:var(--accent-brass)]"
+                          />
                           {c.label}
                         </Link>
                         <div className="mt-1 num-tabular text-[11px] font-light text-muted-foreground">

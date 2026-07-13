@@ -58,51 +58,63 @@
   --color-cat-action: var(--cat-action);
 
   --font-sans: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+
+  --color-brass: var(--accent-brass);
+  --color-brass-soft: var(--accent-brass-soft);
+  --color-walnut: var(--walnut);
+  --color-cream: var(--cream);
 }
 
 :root {
   --radius: 4px;
 
-  /* Editorial paper palette */
-  --background: #f5efef;
-  --surface-sand: #f2efea;
-  --foreground: #1a1a1a;
+  /* Editorial paper palette — "Atelier feutré" */
+  --cream: #efe9e1;
+  --sand: #d9cfc0;
+  --walnut: #5a4a3a;
+  --accent-brass: #c9a84c;
+  --accent-brass-soft: #e6d69a;
 
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
+  --background: #f5f0e8;
+  --surface-sand: #ece4d4;
+  --foreground: #2b241d;
 
-  --primary: #a6615f;
-  --primary-foreground: #f8f6f4;
-  --accent-hover: #965755;
-  --accent-tint: #f4ebeb;
+  --card: #fbf7f0;
+  --card-foreground: #2b241d;
+  --popover: #fbf7f0;
+  --popover-foreground: #2b241d;
 
-  --secondary: #f2efea;
-  --secondary-foreground: #1a1a1a;
-  --muted: #efeae6;
-  --muted-foreground: #606060;
-  --accent: #f4ebeb;
-  --accent-foreground: #1a1a1a;
+  --primary: #5a4a3a;
+  --primary-foreground: #fbf7f0;
+  --accent-hover: #443628;
+  --accent-tint: #ede2c9;
+
+  --secondary: #ece4d4;
+  --secondary-foreground: #2b241d;
+  --muted: #e8dfd0;
+  --muted-foreground: #7a6a5a;
+  --accent: #ede2c9;
+  --accent-foreground: #2b241d;
   --destructive: #a6615f;
-  --destructive-foreground: #f8f6f4;
+  --destructive-foreground: #fbf7f0;
 
-  --border: #e5e0dd;
-  --input: #e5e0dd;
-  --rule-soft: #ece7e3;
-  --ring: rgba(166, 97, 95, 0.35);
+  --border: #ded2bd;
+  --input: #ded2bd;
+  --rule-soft: #e3d9c4;
+  --ring: rgba(201, 168, 76, 0.5);
 
   /* Status — muted clay / ochre / olive, never traffic-light */
   --status-needs: #a6615f;
-  --status-inflight: #d9a65f;
+  --status-inflight: #c9a84c;
   --status-settled: #8ca65f;
-  --status-empty: #d9d9d9;
+  --status-empty: #d9cfc0;
 
   /* Warm low shadows */
-  --shadow-cell: 0 1px 2px rgba(38, 38, 38, 0.06);
-  --shadow-drawer: 0 8px 24px rgba(38, 38, 38, 0.14);
+  --shadow-cell: 0 1px 2px rgba(90, 74, 58, 0.08);
+  --shadow-drawer: 0 8px 24px rgba(90, 74, 58, 0.18);
+  --shadow-editorial: 0 24px 48px -28px rgba(90, 74, 58, 0.35), 0 2px 6px rgba(90, 74, 58, 0.06);
 
   /* Legacy category tokens — kept for backward compat, not applied as chrome */
   --cat-root: #585858;
@@ -137,14 +149,47 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, .font-display {
+  h1, h2, h3, .font-display, .font-serif {
     font-family: var(--font-display);
-    font-weight: 300;
+    font-weight: 400;
     letter-spacing: -0.005em;
   }
-  h1 { font-weight: 300; }
-  h2 { font-weight: 400; }
+  h1 { font-weight: 400; letter-spacing: -0.015em; }
+  h2 { font-weight: 400; letter-spacing: -0.01em; }
   h3 { font-weight: 500; }
+}
+
+@utility serif-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+@utility brass-rule {
+  background: linear-gradient(90deg, var(--accent-brass) 0%, color-mix(in oklab, var(--accent-brass) 30%, transparent) 100%);
+  height: 1px;
+  width: 100%;
+  border: 0;
+}
+
+@utility editorial-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--walnut);
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    background: var(--accent-brass);
+  }
 }
 
 @utility num-tabular {

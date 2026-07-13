@@ -185,18 +185,20 @@ function CashflowPage() {
 
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="mx-auto max-w-lg rounded-md border border-dashed bg-card p-10 text-center">
+    <div className="mx-auto max-w-xl rounded-md border border-dashed border-[color:var(--accent-brass)]/40 bg-card p-12 text-center shadow-[var(--shadow-cell)]">
       <Banknote
-        className="mx-auto mb-3 h-8 w-8 text-muted-foreground"
-        strokeWidth={1.5}
+        className="mx-auto mb-4 h-10 w-10 text-[color:var(--accent-brass)]"
+        strokeWidth={1.25}
       />
-      <h3 className="font-display text-base font-semibold">No payments yet</h3>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Payments will appear here as they are entered or imported from the financial
-        reconciliation. Nothing is fabricated from item statuses.
+      <h3 className="font-display text-2xl tracking-tight text-foreground">
+        Aucun paiement enregistré
+      </h3>
+      <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
+        Les paiements apparaissent ici à mesure qu'ils sont saisis ou importés de la
+        réconciliation financière. Rien n'est fabriqué à partir du statut des items.
       </p>
-      <Button className="mt-4" onClick={onAdd}>
-        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Add first payment
+      <Button className="mt-6" onClick={onAdd}>
+        <Plus className="mr-1.5 h-4 w-4" strokeWidth={1.5} /> Ajouter un premier paiement
       </Button>
     </div>
   );

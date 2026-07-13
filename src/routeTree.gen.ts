@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedScheduleIndexRouteImport } from './routes/_authenticated/schedule.index'
@@ -43,6 +44,11 @@ const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBudgetRoute = AuthenticatedBudgetRouteImport.update({
+  id: '/budget',
+  path: '/budget',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/budget': typeof AuthenticatedBudgetRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/budget': typeof AuthenticatedBudgetRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/map': typeof AuthenticatedMapRoute
   '/': typeof AuthenticatedIndexRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/budget': typeof AuthenticatedBudgetRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/approvals'
+    | '/budget'
     | '/dashboard'
     | '/map'
     | '/room/$roomId'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/approvals'
+    | '/budget'
     | '/dashboard'
     | '/map'
     | '/'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/approvals'
+    | '/_authenticated/budget'
     | '/_authenticated/dashboard'
     | '/_authenticated/map'
     | '/_authenticated/'
@@ -198,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/budget': {
+      id: '/_authenticated/budget'
+      path: '/budget'
+      fullPath: '/budget'
+      preLoaderRoute: typeof AuthenticatedBudgetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/approvals': {
       id: '/_authenticated/approvals'
       path: '/approvals'
@@ -246,6 +265,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -258,6 +278,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,

@@ -1,90 +1,90 @@
-# M3 — Money & Logistics live (revised)
+# Pass éditorial "Atelier feutré"
 
-Three chantiers, verified in order. No security surface touched: RLS, `app_private.*`, `enforce_money_write`, grants, and `*_visible` views stay as-is. Money reads only through `budgets_visible`, `room_targets_visible`, `payments_visible`, `items_visible`; writes go through base tables and pass through `enforce_money_write`. Business columns added via normal idempotent migrations. `budgetMath.ts` is the single source of spend/gap/lane math.
+Objectif : rendre l'app désirable sans toucher à la logique métier (RLS, `*_visible`, `budgetMath`, mutations). Seulement présentation, tokens, iconographie, imagerie.
 
----
+## 1. Système visuel (src/styles.css + __root.tsx)
 
-## Schema migration (runs before Chantier 1)
+- **Typo** : pair Cormorant Garamond (display serif, headings + hero numerals) + Libre Franklin (body/UI, déjà en place). Chargée via `<link>` Google Fonts dans `src/routes/__root.tsx` head. Tokens `--font-display: "Cormorant Garamond"` / `--font-sans: "Libre Franklin"`.
+- **Palette confirmée** : cream `#efe9e1`, sand `#d9cfc0`, walnut `#5a4a3a`, brass `#c9a84c`. Mise à jour de `--background`, `--surface-sand`, `--foreground`, `--primary` (walnut), nouveau `--accent-brass`, `--accent-brass-soft`.
+- **Textures & profondeur** : hairlines à `color-mix(walnut 12%)`, `--shadow-editorial: 0 20px 40px -24px rgba(90,74,58,0.25)`, papier subtle (SVG grain optionnel en `background-image` sur `body`).
+- **Utilities** ajoutées : `.brass-rule` (filet 1px brass 30%), `.editorial-eyebrow` (petites capitales walnut + brass dot), `.serif-num` (Cormorant + tabular).
 
-One idempotent migration, no security surface touched:
+## 2. Iconographie unifiée
 
-- `ALTER TABLE budgets ADD COLUMN IF NOT EXISTS scope text NOT NULL DEFAULT 'project'` with a CHECK for `('project','roof_deck')`; partial unique index on `(project_id, scope)` so each project holds at most one row per scope. `budgets_visible` already selects `*` so `scope` surfaces automatically — verify, and if it column-lists, extend it (still definer, no policy change).
-- `ALTER TABLE payments ADD COLUMN IF NOT EXISTS notes text`. Same check for `payments_visible`.
-- `ALTER TABLE categories ADD COLUMN IF NOT EXISTS axis text` with CHECK `('construction','ffe')`; backfill:
-  - construction: `plumbing, electrical, av, finish, tile_stone, floor, paint, wallpaper, door, hardware, fencing, kitchen`
-  - ffe: `furniture, upholstery, drapery`
-  - leave any unmatched key null and log them from the migration for Giana to classify.
+Nouveau `src/components/ui/CategoryIcon.tsx` : map `categoryKey → Lucide icon` avec `strokeWidth={1.25}`, tailles `sm|md|lg`.
 
-Comment in `categories.ts`: "Fees follow their item's category axis. Project-level fees (no category) count toward construction by default."
+```text
+plumbing  → Droplets       tile        → Grid3x3
+upholstery→ Armchair       drapery     → Curtains (lucide) / Blinds
+lighting  → Lamp            hardware    → Wrench
+kitchen   → ChefHat         furniture   → Sofa
+art       → Frame           millwork    → Hammer
+logistics → Truck           budget      → Wallet
+payments  → Banknote        approvals   → CheckCheck
+schedule  → CalendarRange   fees        → Percent
+```
 
----
+Utilisée dans : sidebar shell, entêtes de colonnes matrix, chips de catégories, entêtes de lanes budget, lignes cashflow, colonnes logistics, ItemDrawer header.
 
-## Chantier 1 — Budget module (`/budget`)
+## 3. Imagerie photographique (assets CDN)
 
-**Route & nav.** New `src/routes/_authenticated/budget.tsx`, module `budget`. Nav entry between Schedule and (future) Logistics in `AppShell`.
+Génération d'une image par pièce connue via `imagegen--generate_image` (standard, 1536×1024, `.jpg`), ambiance "Atelier feutré" — laiton, chêne, lin, lumière rasante. Puis upload via `lovable-assets create` et pointer `.asset.json` importé en TS.
 
-**Data layer.**
-- `src/lib/budgetsApi.ts` + `useBudgets.ts`: read `budgets_visible` (money null for masked roles), write `budgets` (guarded). Query returns rows keyed by `scope`; UI reads `project` and `roof_deck` rows independently.
-- `useRoomTarget` already exists; add `useUpdateRoomTarget` (guarded write to `rooms.target_amount`).
-- Extend `budgetMath.ts`:
-  - `perUnitSuggestion(item, rates)` — pure helper returning `{ rate, unit, suggested }` or null. Not applied to totals in M3; surfaced in the item drawer as a suggestion so the auto-recompute lands later without touching screens.
-  - `roomBudgetRow(items, roomId, target)` → `{ target, committed, options, gap, status }` (reuses `roomSpend` + `gap`).
-  - `projectLevelSpend(items)` — items with `room_id === null` (fees included), for the "Project-wide costs" row.
-  - `axisSpend(items, categories, axis)` — split by `categories.axis`; fees inherit their item's category axis; project-level fees (null category) count as `construction`.
+Rooms ciblées (identifiées côté seed) : Living Room, Dining Room, Kitchen, Master Bedroom, Master Bathroom, Powder Room, Guest Bedroom, Study, Entry, Terrace. + 1 hero global "residence".
 
-**Screen layout.**
-1. **Global zone** — two side-by-side cards (Construction / FF&E), each showing total budget (inline-editable for full-visibility), axis spend, and a per-unit rates editor (`per_unit_rates` jsonb: add/edit/delete rows). Masked roles see placeholders and read-only rates.
-2. **Roof Deck block** — separate card fed by the `scope='roof_deck'` budget row: target, committed, options, gap, plus note "Separately signed by Candida, includes all dunnage; also rolls into the project total."
-3. **Rooms table** — one row per room, rendered twice side by side (Construction | FF&E) via `axisSpend`. Columns: Target (inline edit), Committed, Options (never merged with committed), Gap, status dot. Row click → `/room/$roomId`. Final "Project-wide costs" row using `projectLevelSpend`.
+Nouveau module `src/lib/roomHero.ts` : `heroFor(roomSlug) → url | null` avec fallback gradient walnut→brass si pas d'image.
 
-**Client "Room decision summary" export.** Per-room button opens a printable view (`/budget/room-summary/$roomId` sub-route or dialog) listing committed items with title, vendor, qty, and CLIENT price only. Enforced by projecting only `client_price` from `items_visible`. No `gad_cost`, no margin, ever.
+## 4. Écrans redessinés
 
----
+### Dashboard (`_authenticated/dashboard.tsx`)
+- Bandeau hero photographique full-bleed (18rem) avec titre serif "Candida Residence" + eyebrow brass ("En chantier · 12 pièces").
+- 3 KPI cards en grille éditoriale : Spend, Gap, Payments this month — nombres en Cormorant 48px, label micro caps, filet laiton.
+- Section "Chantiers" (3-col) avec ic (...)ône Lucide + titre + progress bar walnut/brass, cliquable.
+- Empty states dignes (illustration Lucide grande + phrase serif).
 
-## Chantier 2 — Cashflow & cash calls (`/cashflow`)
+### Matrix (`_authenticated/index.tsx`)
+- Corner cell renforcé : logo/nom projet en serif + micro caps "Rooms".
+- Colonnes : icône catégorie 14px + label micro caps, filet brass au hover de colonne (via `:has`).
+- Dots statut agrandis, halo subtle. Sticky corner z-index déjà OK depuis fix précédent.
 
-**Route & nav.** New `src/routes/_authenticated/cashflow.tsx`, module `cashflow`, nav after Budget.
+### Room detail (`room.$roomId.tsx`)
+- Hero 40vh avec image de pièce, gradient wash bas walnut→transparent, breadcrumb Rooms / <Room> en clair sur photo, KPIs superposés en bas (items, spend, gap).
+- Tab strip catégories avec icônes.
+- Sections `<Card>` refondues : header serif + eyebrow + filet brass.
 
-**Data layer.**
-- `useAllPayments()` reads `payments_visible` (now including `notes`); joins client-side with `items_visible` (title, room) and `phases`.
-- `usePhases()` reads `phases` ordered by `sort_order`.
-- Extend `budgetMath.ts`:
-  - `pivotPayments(payments, axis: 'month'|'phase', phases)` → matrix `{ column, clientLane, vendorLane, cells }`.
-  - `reservedTotal(payments)` and `upcomingSorted(payments)`.
-  - `dashboardCashCard(payments, now)` → `{ thisMonth: { client, vendor }, nextMonth: { client, vendor } }`.
+### Budget (`budget.tsx`)
+- Header serif "Budget" + eyebrow "Signed budgets · gap live".
+- Lanes en cards éditoriales avec ic (...)ône catégorie, barre de progression walnut/brass, chiffres serif tabular.
+- Fees rappel en note discrète : *fees suivent l'axe catégorie de leur item ; fees projet (sans catégorie) comptent en construction par défaut* (commentaire code + tooltip UI).
 
-**Screen layout.**
-1. **Pivot** — Month | Phase toggle. Two lanes per column (client → GAD, GAD → vendor). Cell shows summed amount + count; click opens a drawer listing the payments, each row uses the M2 payment editor.
-2. **Reserved panel** — `state === 'reserved'` payments with total; copy "Not GAD's until ordered". Note: "Cross-project view will appear once a second project exists."
-3. **Upcoming list** — sorted by `due_date`. Actions: **Mark paid** (guarded write `state='paid'`); **Move to phase** (select → update `phase_id` AND append audit line to `payments.notes`: `"[YYYY-MM-DD HH:mm] <user email> moved from <old phase> to <new phase>"`).
-4. **Cash call export** — dialog "Generate cash call": pick date + phase range → printable/copyable list, client → GAD amounts ONLY, grouped by phase, Construction and FF&E side by side.
-5. **Empty state** — with zero rows in `payments_visible`: card explaining "Payments will appear as they are entered or imported from the reconciliation" + primary "Add payment" button opening item picker → M2 payment editor. No fabrication from item statuses.
+### Cashflow (`cashflow.tsx`)
+- Timeline verticale avec pastilles laiton par mois, montants en serif, empty state grand (icône Banknote + "Aucun paiement enregistré").
 
-**Dashboard wiring.** Extend the M2 money card with a "This month / Next month" block driven by `dashboardCashCard`; two rows (client / vendor lane), masked-aware. Same math source.
+### Logistics (`logistics.tsx`)
+- Colonnes kanban : titre serif + icône Truck/Ship/Package/Home, compteur brass.
+- Cartes : thumbnail carrée (image de pièce si `room_id`, sinon initiales), poignée `GripVertical` walnut, drapeau `delivery_address_pending` en pastille clay.
 
----
+### AppShell (`components/shell/AppShell.tsx`)
+- Sidebar : logo wordmark serif "Giana", nav items avec icônes catégorie, item actif = filet vertical brass 2px + fond cream.
+- Topbar : breadcrumb serif, cloche notifications discrète.
 
-## Chantier 3 — Logistics board (`/logistics`)
+## 5. Ordre d'exécution
+1. Tokens + fonts + utilities dans styles.css + __root head.
+2. `CategoryIcon` + `roomHero` helpers.
+3. Génération assets pièces (10 images) + upload CDN en parallèle.
+4. AppShell + Dashboard.
+5. Matrix + Room detail.
+6. Budget + Cashflow + Logistics.
+7. Vérification build + revue visuelle sur chaque route.
 
-**Route & nav.** New `src/routes/_authenticated/logistics.tsx`, module `logistics`.
+## Garde-fous
+- Aucune migration, aucune modif de `*_visible`, `budgetMath`, mutations, RLS, GRANT.
+- Aucun nombre inventé : tous les chiffres viennent des hooks existants ; empty states quand vide.
+- Exports client-only inchangés.
+- Fallback iconographique et image (jamais de cassure si catégorie/pièce inconnue).
 
-**Data layer.**
-- Reuse `useItemsData` (already merges `is_fee` and non-money fields). Filter `!is_fee`.
-- Existing `useUpdateItem` writes `logistics_location` and `delivery_address_pending`; `updated_at` refreshes via trigger.
-
-**Screen layout.**
-1. **Pending addresses banner** — sticky top strip listing items with `delivery_address_pending === true`; "Confirm address" opens the M2 item drawer at the address field.
-2. **Board** — columns from `LOGISTICS_LOCATIONS` plus an "Unset" column for null. Compact cards: title, room name, vendor name, status dot. Drag-and-drop between columns via `@dnd-kit/core`; if not installed, fall back to a one-tap "Move to…" popover (reported as deferred, not blocking).
-3. **Parties panel** — right sidebar listing vendors + people with logistics roles (Paige, Brownstone Movers, storage). Name, address, phone from existing fields. Explicit callout: "Open point: PC Richard storage facility name TBC."
-4. **Manifest view** — tab "France container manifest": items in `('france_ship','mississippi_truck','mississippi_warehouse')`, printable.
-5. **Install-day view** — tab "Install day": every item not yet at residence grouped by current `logistics_location`, printable.
-
----
-
-## Verification (after each chantier)
-
-- `bun run test:security` green; no RLS/policy/view/function/grant/trigger changed (only column adds).
-- Preview-as `money_visibility='none'`: every money figure on the new screens is placeholder; cash call and room summary render redacted/empty.
-- `rg` shows no spend/gap/lane arithmetic outside `budgetMath.ts`.
-- With zero payments: `/cashflow` and the Dashboard cash card show empty state, no fabricated rows.
-- Report anything deferred (dnd library fallback, unclassified categories from the axis backfill, etc.).
+## Détails techniques
+- Google Fonts chargé via `<link rel="stylesheet">` dans `head()` de `__root.tsx` (jamais `@import` URL dans styles.css).
+- Assets images : `imagegen--generate_image` → `/tmp/rooms/<slug>.jpg` → `lovable-assets create --file` → pointer `src/assets/rooms/<slug>.jpg.asset.json`, import JSON, `img.url`.
+- Aucun `text-white`/`bg-black` hardcodé : uniquement tokens sémantiques.
+- Animations : `animate-fade-in` sur cartes, `hover-scale` sur thumbnails (utilitaires déjà présents).

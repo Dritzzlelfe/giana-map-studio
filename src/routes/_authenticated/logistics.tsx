@@ -248,6 +248,7 @@ function LogisticsPage() {
           open={!!editing}
           onOpenChange={(o) => !o && setEditing(null)}
         />
+        </div>
       </div>
     </AppShell>
   );

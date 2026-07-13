@@ -177,6 +177,7 @@ function CashflowPage() {
           payments={enriched}
           phases={phases}
         />
+        </div>
       </div>
     </AppShell>
   );

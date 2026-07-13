@@ -264,6 +264,7 @@ export type Database = {
           client_price: number | null
           created_at: string
           delivery_address: string | null
+          delivery_address_pending: boolean
           delivery_date: string | null
           description: string | null
           design_placement: string | null
@@ -296,6 +297,7 @@ export type Database = {
           client_price?: number | null
           created_at?: string
           delivery_address?: string | null
+          delivery_address_pending?: boolean
           delivery_date?: string | null
           description?: string | null
           design_placement?: string | null
@@ -328,6 +330,7 @@ export type Database = {
           client_price?: number | null
           created_at?: string
           delivery_address?: string | null
+          delivery_address_pending?: boolean
           delivery_date?: string | null
           description?: string | null
           design_placement?: string | null
@@ -929,33 +932,48 @@ export type Database = {
       rooms: {
         Row: {
           active: boolean
+          ceiling_height: string | null
           created_at: string
           id: string
+          length: string | null
           name: string
+          notes: string | null
+          plan_name: string | null
           project_id: string
           sort_order: number
           target_amount: number | null
           updated_at: string
+          width: string | null
         }
         Insert: {
           active?: boolean
+          ceiling_height?: string | null
           created_at?: string
           id?: string
+          length?: string | null
           name: string
+          notes?: string | null
+          plan_name?: string | null
           project_id: string
           sort_order?: number
           target_amount?: number | null
           updated_at?: string
+          width?: string | null
         }
         Update: {
           active?: boolean
+          ceiling_height?: string | null
           created_at?: string
           id?: string
+          length?: string | null
           name?: string
+          notes?: string | null
+          plan_name?: string | null
           project_id?: string
           sort_order?: number
           target_amount?: number | null
           updated_at?: string
+          width?: string | null
         }
         Relationships: [
           {

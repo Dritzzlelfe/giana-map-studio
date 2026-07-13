@@ -5,7 +5,13 @@ export type Room = {
   name: string;
   sort_order: number;
   active: boolean;
+  plan_name: string | null;
+  ceiling_height: string | null;
+  width: string | null;
+  length: string | null;
+  notes: string | null;
 };
+
 
 export type Category = {
   id: string;
@@ -36,6 +42,8 @@ export type Item = {
   room_id: string | null;
   category_id: string | null;
   vendor_id: string | null;
+  product_id: string | null;
+
   title: string;
   description: string | null;
   sku: string | null;
@@ -49,7 +57,9 @@ export type Item = {
   lead_time: string | null;
   delivery_address: string | null;
   delivery_date: string | null;
+  delivery_address_pending: boolean;
   storage_name: string | null;
+
   storage_address: string | null;
   logistics_location: string | null;
   option_source: string | null;
@@ -78,7 +88,8 @@ export type LoadedData = {
 // Non-money columns of items — the ONLY columns readable directly from
 // public.items by authenticated. Money columns are read through items_visible.
 const ITEM_WRITE_RETURN_COLS =
-  "id, room_id, category_id, vendor_id, title, description, sku, design_placement, qty_needed, qty_ordered, status, priority, ordered_by, installer, lead_time, delivery_address, delivery_date, storage_name, storage_address, logistics_location, option_source, client_paid_gad, gad_paid_vendor, created_at, updated_at";
+  "id, room_id, category_id, vendor_id, product_id, title, description, sku, design_placement, qty_needed, qty_ordered, status, priority, ordered_by, installer, lead_time, delivery_address, delivery_address_pending, delivery_date, storage_name, storage_address, logistics_location, option_source, client_paid_gad, gad_paid_vendor, created_at, updated_at";
+
 
 export async function loadAll(): Promise<LoadedData> {
   const [r, c, v, p, i] = await Promise.all([
@@ -86,7 +97,7 @@ export async function loadAll(): Promise<LoadedData> {
     // it is exposed only through `room_targets_visible` with role-aware masking.
     supabase
       .from("rooms")
-      .select("id, name, sort_order, active, created_at, updated_at, project_id")
+      .select("*")
       .order("sort_order"),
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("vendors").select("*").order("name"),
@@ -139,7 +150,8 @@ export async function createItem(patch: Partial<Item> & { title: string }): Prom
 export async function updateItem(id: string, patch: Partial<Item>): Promise<Item> {
   const { data, error } = await supabase
     .from("items")
-    .update(patch)
+    .update(patch as never)
+
     .eq("id", id)
     .select(ITEM_WRITE_RETURN_COLS)
     .single();

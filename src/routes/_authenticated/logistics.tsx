@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Loader2, Truck, AlertTriangle, Printer, MapPin, GripVertical, Calendar, Hash, Store, Clock, Home } from "lucide-react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData, useUpdateItem } from "@/lib/useItemsData";
+import { useItemPhotoMap } from "@/lib/mediaApi";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/shell/AppShell";
 import { useItemsData } from "@/lib/useItemsData";
-import { rollupStatus, countOptions, type Category, type Item, type Room } from "@/lib/itemsApi";
+import { rollupStatus, countOptions, isVisibleInGrid, type Category, type Item, type Room } from "@/lib/itemsApi";
 import { StatusDot } from "@/components/items/StatusDot";
 import { CellPanel } from "@/components/items/CellPanel";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
@@ -28,6 +28,7 @@ function MatrixPage() {
     const m = new Map<string, Item[]>();
     if (!data) return m;
     for (const it of data.items) {
+      if (!isVisibleInGrid(it)) continue;
       if (!it.room_id || !it.category_id) continue;
       const k = `${it.room_id}::${it.category_id}`;
       const arr = m.get(k) ?? [];

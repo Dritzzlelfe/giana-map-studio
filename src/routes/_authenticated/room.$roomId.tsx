@@ -69,7 +69,7 @@ function RoomPage() {
               <h2 className="mb-3 font-display text-lg font-semibold">Items by category</h2>
               {data.categories.map((c) => {
                 const scoped = data.items
-                  .filter((i) => i.room_id === room.id && i.category_id === c.id)
+                  .filter((i) => i.room_id === room.id && i.category_id === c.id && !i.is_fee)
                   .sort((a, b) =>
                     (a.delivery_date ?? "9999").localeCompare(b.delivery_date ?? "9999"),
                   );

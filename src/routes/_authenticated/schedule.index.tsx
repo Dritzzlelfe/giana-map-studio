@@ -25,7 +25,7 @@ function SchedulePicker() {
         {data && (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {data.categories.map((c) => {
-              const n = data.items.filter((i) => i.category_id === c.id).length;
+              const n = data.items.filter((i) => i.category_id === c.id && !i.is_fee && i.room_id != null).length;
               return (
                 <Link
                   key={c.id}

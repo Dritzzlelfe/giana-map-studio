@@ -11,6 +11,9 @@ import {
   Shield,
   Eye,
   ClipboardCheck,
+  Wallet,
+  Banknote,
+  Truck,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,6 +42,9 @@ const NAV: {
   { to: "/", label: "Matrix", icon: Grid3x3, exact: true, module: "matrix" },
   { to: "/approvals", label: "Approvals", icon: ClipboardCheck, exact: false, module: "approvals" },
   { to: "/schedule", label: "Schedule", icon: ListTree, exact: false, module: "schedule" },
+  { to: "/budget", label: "Budget", icon: Wallet, exact: false, module: "budget" },
+  { to: "/cashflow", label: "Cashflow", icon: Banknote, exact: false, module: "cashflow" },
+  { to: "/logistics", label: "Logistics", icon: Truck, exact: false, module: "logistics" },
   { to: "/map", label: "Mind map", icon: Network, exact: false, module: "matrix" },
   { to: "/admin", label: "Admin", icon: Shield, exact: false, module: "admin" },
 ];

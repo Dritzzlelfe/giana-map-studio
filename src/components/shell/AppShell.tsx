@@ -10,6 +10,7 @@ import {
   LogOut,
   Shield,
   Eye,
+  ClipboardCheck,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,10 +37,12 @@ const NAV: {
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: false, module: "matrix" },
   { to: "/room", label: "Rooms", icon: HomeIcon, exact: false, module: "room" },
   { to: "/", label: "Matrix", icon: Grid3x3, exact: true, module: "matrix" },
+  { to: "/approvals", label: "Approvals", icon: ClipboardCheck, exact: false, module: "approvals" },
   { to: "/schedule", label: "Schedule", icon: ListTree, exact: false, module: "schedule" },
   { to: "/map", label: "Mind map", icon: Network, exact: false, module: "matrix" },
   { to: "/admin", label: "Admin", icon: Shield, exact: false, module: "admin" },
 ];
+
 
 export function AppShell({ children, right }: { children: ReactNode; right?: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

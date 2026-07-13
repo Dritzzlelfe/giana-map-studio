@@ -44,11 +44,42 @@ function RoomPage() {
           {room && (
             <div className="relative h-48 overflow-hidden border-b border-[color:var(--rule-soft)]">
               <img
-                src={heroAsset.url}
+                src={heroUrl}
                 alt=""
                 aria-hidden
                 className="absolute inset-0 h-full w-full object-cover"
               />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  uploadRoomImage.mutate(
+                    { roomId: room.id, file },
+                    {
+                      onSuccess: () => toast.success("Image mise à jour"),
+                      onError: (err: Error) => toast.error(err.message),
+                    },
+                  );
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadRoomImage.isPending}
+                className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-sm border border-[color:var(--cream)]/30 bg-black/40 px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[color:var(--cream)] backdrop-blur transition-colors hover:bg-black/60 disabled:opacity-60"
+              >
+                {uploadRoomImage.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-3.5 w-3.5" />
+                )}
+                Changer l'image
+              </button>
               <div
                 className="absolute inset-0"
                 style={{

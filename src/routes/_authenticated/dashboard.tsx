@@ -6,6 +6,7 @@ import { useItemsData } from "@/lib/useItemsData";
 import { LOGISTICS_LOCATIONS, type Item, type LoadedData } from "@/lib/itemsApi";
 import { ItemDrawer } from "@/components/items/ItemDrawer";
 import { StatusBadge } from "@/components/items/StatusDot";
+import { projectSpend } from "@/lib/budgetMath";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Project Map" }] }),
@@ -33,6 +34,8 @@ function DashboardPage() {
     [data],
   );
   const asap = useMemo(() => (data?.items ?? []).filter((i) => i.priority === "asap"), [data]);
+
+  const totals = useMemo(() => projectSpend(data?.items ?? []), [data]);
 
   const cashflow = useMemo(() => {
     const months = new Map<
@@ -71,6 +74,39 @@ function DashboardPage() {
       {data && (
         <div className="flex-1 overflow-auto p-5">
           <div className="grid gap-4 lg:grid-cols-2">
+            <Card title="Project totals" className="lg:col-span-2">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Metric
+                  label="Committed"
+                  value={totals.committed}
+                  masked={totals.hasMaskedCommitted}
+                  count={totals.committedCount}
+                />
+                <Metric
+                  label="Options"
+                  value={totals.options}
+                  masked={totals.hasMaskedOptions}
+                  count={totals.optionsCount}
+                />
+                <Metric
+                  label="Total (committed + options)"
+                  value={
+                    totals.committed != null && totals.options != null
+                      ? totals.committed + totals.options
+                      : null
+                  }
+                  masked={totals.hasMaskedCommitted || totals.hasMaskedOptions}
+                  count={totals.committedCount + totals.optionsCount}
+                />
+              </div>
+              {(totals.hasMaskedCommitted || totals.hasMaskedOptions) && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Some money values are hidden by your role — totals shown exclude masked rows.
+                </p>
+              )}
+            </Card>
+
+
             <Card title={`ASAP (${asap.length})`}>
               <ItemList items={asap} data={data} onEdit={setEditing} />
             </Card>
@@ -201,6 +237,33 @@ function Card({
     <div className={`rounded-md border bg-card p-4 ${className ?? ""}`}>
       <h2 className="mb-3 font-display text-base font-semibold">{title}</h2>
       {children}
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  masked,
+  count,
+}: {
+  label: string;
+  value: number | null;
+  masked: boolean;
+  count: number;
+}) {
+  return (
+    <div className="rounded border bg-muted/20 p-3">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-1 num-tabular text-2xl font-light tracking-tight">
+        {value == null ? "—" : fmtMoney(value)}
+        {masked && value != null && (
+          <span className="ml-1 text-xs font-normal text-muted-foreground">·  partial</span>
+        )}
+      </div>
+      <div className="mt-0.5 text-xs text-muted-foreground">
+        {count} {count === 1 ? "item" : "items"}
+      </div>
     </div>
   );
 }

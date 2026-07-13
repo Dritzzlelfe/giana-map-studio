@@ -117,6 +117,7 @@ function BudgetPage() {
           data={items}
           onClose={() => setExportRoom(null)}
         />
+        </div>
       </div>
     </AppShell>
   );

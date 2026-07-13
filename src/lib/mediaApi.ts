@@ -43,3 +43,27 @@ export function useMediaForRoom(roomId: string | null | undefined) {
     enabled: !!roomId,
   });
 }
+
+// Batch-fetch the first photo per item id — used for thumbnails on list views.
+export function useItemPhotoMap(itemIds: string[]) {
+  const key = [...itemIds].sort().join(",");
+  return useQuery({
+    queryKey: ["media", "items", key],
+    queryFn: async (): Promise<Record<string, string>> => {
+      if (itemIds.length === 0) return {};
+      const { data, error } = await supabase
+        .from("media")
+        .select("item_id, file_url, created_at")
+        .in("item_id", itemIds)
+        .eq("kind", "photo")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      for (const row of (data ?? []) as { item_id: string | null; file_url: string }[]) {
+        if (row.item_id && !map[row.item_id]) map[row.item_id] = row.file_url;
+      }
+      return map;
+    },
+    enabled: itemIds.length > 0,
+  });
+}

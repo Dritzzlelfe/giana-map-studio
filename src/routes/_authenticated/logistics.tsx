@@ -266,20 +266,39 @@ function BoardCard({
   currentLocation: string;
 }) {
   const update = useUpdateItem();
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   return (
-    <div className="rounded border bg-card p-2 text-xs">
-      <button className="w-full text-left hover:underline" onClick={() => onEdit(item)}>
-        <div className="flex items-start justify-between gap-1">
-          <span className="font-medium truncate">{item.title}</span>
-          <StatusBadge status={item.status} />
-        </div>
-        <div className="mt-0.5 text-muted-foreground">
-          {item.room_id ? data.roomById[item.room_id]?.name : "—"}
-          {item.vendor_id && (
-            <span> · {data.vendorById[item.vendor_id]?.name}</span>
-          )}
-        </div>
-      </button>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "rounded border bg-card p-2 text-xs",
+        isDragging && "opacity-40",
+      )}
+    >
+      <div className="flex items-start gap-1">
+        <button
+          type="button"
+          className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
+          aria-label="Drag to move"
+          {...listeners}
+          {...attributes}
+        >
+          <GripVertical className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+        <button className="flex-1 text-left hover:underline" onClick={() => onEdit(item)}>
+          <div className="flex items-start justify-between gap-1">
+            <span className="font-medium truncate">{item.title}</span>
+            <StatusBadge status={item.status} />
+          </div>
+          <div className="mt-0.5 text-muted-foreground">
+            {item.room_id ? data.roomById[item.room_id]?.name : "—"}
+            {item.vendor_id && (
+              <span> · {data.vendorById[item.vendor_id]?.name}</span>
+            )}
+          </div>
+        </button>
+      </div>
+
       <div className="mt-1.5">
         <Popover>
           <PopoverTrigger asChild>

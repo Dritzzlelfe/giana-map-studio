@@ -308,20 +308,22 @@ function BoardColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-md border bg-muted/20 p-2 transition-colors",
-        isOver && "border-[color:var(--primary)] bg-[color:var(--primary)]/10",
+        "rounded-md border border-[color:var(--rule-soft)] bg-[color:var(--surface-sand)]/60 p-3 transition-colors",
+        isOver && "border-[color:var(--accent-brass)] bg-[color:var(--accent-brass)]/10",
       )}
     >
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between border-b border-[color:var(--rule-soft)] pb-2">
         <div className="label-micro">{label}</div>
-        <span className="text-xs text-muted-foreground">{items.length}</span>
+        <span className="serif-num text-lg text-[color:var(--accent-brass)]">
+          {items.length}
+        </span>
       </div>
       <div className="space-y-1.5">
         {items.map((it) => (
           <BoardCard key={it.id} item={it} data={data} onEdit={onEdit} currentLocation={label} />
         ))}
         {items.length === 0 && (
-          <div className="rounded border border-dashed p-4 text-center text-xs text-muted-foreground">
+          <div className="rounded border border-dashed border-[color:var(--rule-soft)] p-6 text-center text-xs italic text-muted-foreground">
             —
           </div>
         )}

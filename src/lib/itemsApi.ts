@@ -94,7 +94,7 @@ export async function loadAll(): Promise<LoadedData> {
     // it is exposed only through `room_targets_visible` with role-aware masking.
     supabase
       .from("rooms")
-      .select("id, name, sort_order, active, created_at, updated_at, project_id")
+      .select("*")
       .order("sort_order"),
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("vendors").select("*").order("name"),
